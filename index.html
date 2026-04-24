@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบป้ายแดง</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red:#C0392B;--red-dark:#922B21;--red-light:#F1948A;--red-bg:#FDEDEC;
+  --stock:#2C3E50;--stock-bg:#EAF0F6;
+  --admin:#1A5276;--admin-bg:#D6EAF8;
+  --sc:#7D6608;--sc-bg:#FEF9E7;
+  --customer:#1D8348;--customer-bg:#E9F7EF;
+  --lose:#6C3483;--lose-bg:#F5EEF8;
+  --repair:#784212;--repair-bg:#FEF5E7;
+  --gray-900:#1a1a2e;--gray-800:#2d2d44;--gray-700:#4a4a65;
+  --gray-400:#9999aa;--gray-200:#e8e8f0;--gray-100:#f4f4f8;--gray-50:#fafafc;
+  --bg:#f0f0f5;--card:#fff;--text:#1a1a2e;--muted:#6b6b80;
+  --shadow:0 2px 8px rgba(0,0,0,.08);--shadow-lg:0 8px 24px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* LOGIN */
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;align-items:center;justify-content:center;z-index:1000;}
+.login-box{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2.5rem;width:360px;text-align:center;}
+.login-logo{font-size:48px;margin-bottom:1rem;}
+.login-title{font-family:'Kanit',sans-serif;font-size:22px;font-weight:600;color:#fff;margin-bottom:.25rem;}
+.login-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:2rem;}
+.login-input{width:100%;height:46px;border:1px solid rgba(255,255,255,.15);border-radius:10px;background:rgba(255,255,255,.08);color:#fff;font-family:'Sarabun',sans-serif;font-size:15px;padding:0 1rem;outline:none;text-align:center;letter-spacing:.2em;transition:border .2s;}
+.login-input::placeholder{color:rgba(255,255,255,.3);letter-spacing:0;}
+.login-input:focus{border-color:var(--red-light);}
+.login-btn{width:100%;height:46px;margin-top:1rem;border:none;border-radius:10px;background:linear-gradient(135deg,var(--red),var(--red-dark));color:#fff;font-family:'Kanit',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(192,57,43,.4);}
+.login-err{color:var(--red-light);font-size:13px;margin-top:.75rem;min-height:20px;}
+
+/* TOPBAR */
+.topbar{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2);}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.topbar-logo{font-size:22px;}
+.topbar-title{font-family:'Kanit',sans-serif;font-size:16px;font-weight:600;letter-spacing:.02em;}
+.topbar-sub{font-size:11px;opacity:.55;margin-top:1px;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.sync-badge{font-size:11px;opacity:.7;display:flex;align-items:center;gap:5px;}
+.dot{width:6px;height:6px;border-radius:50%;background:#4ade80;flex-shrink:0;}
+.dot.loading{background:#fbbf24;animation:blink 1s infinite;}
+.dot.err{background:#f87171;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* FILTER BAR */
+.filterbar{background:#fff;border-bottom:1px solid var(--gray-200);padding:.75rem 1.5rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:56px;z-index:90;box-shadow:0 2px 4px rgba(0,0,0,.04);}
+.filter-group{display:flex;gap:6px;align-items:center;}
+.filter-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.fbtn{padding:5px 12px;border-radius:20px;border:1.5px solid var(--gray-200);background:#fff;font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;font-weight:500;color:var(--gray-700);}
+.fbtn:hover{border-color:var(--red);color:var(--red);}
+.fbtn.on{background:var(--red);border-color:var(--red);color:#fff;}
+.search-box{margin-left:auto;position:relative;}
+.search-input{height:32px;border:1.5px solid var(--gray-200);border-radius:20px;padding:0 12px 0 32px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;width:200px;transition:border .15s;}
+.search-input:focus{border-color:var(--red);}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;}
+
+/* STATS BAR */
+.statsbar{padding:.875rem 1.5rem;display:flex;gap:.75rem;flex-wrap:wrap;}
+.stat-chip{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid;}
+.stat-num{font-family:'Kanit',sans-serif;font-size:14px;font-weight:600;}
+
+/* COMPANY SECTION */
+.company-section{padding:0 1.5rem 1.5rem;}
+.company-header{display:flex;align-items:center;gap:10px;margin-bottom:.875rem;padding-bottom:.5rem;border-bottom:2px solid var(--gray-200);}
+.company-badge{font-family:'Kanit',sans-serif;font-size:18px;font-weight:700;padding:4px 14px;border-radius:8px;background:var(--gray-900);color:#fff;letter-spacing:.05em;}
+.company-count{font-size:13px;color:var(--muted);}
+
+/* PLATE CARDS GRID */
+.plates-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.625rem;}
+
+/* PLATE CARD */
+.plate-card{border-radius:10px;padding:.75rem .875rem;cursor:pointer;transition:all .2s;position:relative;border:2px solid transparent;user-select:none;}
+.plate-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.plate-card:active{transform:translateY(0);}
+.plate-num{font-family:'Kanit',sans-serif;font-size:15px;font-weight:600;line-height:1.2;margin-bottom:3px;}
+.plate-province{font-size:10px;opacity:.7;margin-bottom:5px;}
+.plate-status{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;display:inline-block;letter-spacing:.03em;}
+
+/* STATUS COLORS */
+.s-stock{background:var(--stock-bg);border-color:#AEB6BF;color:var(--stock);}
+.s-stock .plate-status{background:var(--stock);color:#fff;}
+.s-admin{background:var(--admin-bg);border-color:#AED6F1;color:var(--admin);}
+.s-admin .plate-status{background:var(--admin);color:#fff;}
+.s-sc{background:var(--sc-bg);border-color:#F9E79F;color:var(--sc);}
+.s-sc .plate-status{background:var(--sc);color:#fff;}
+.s-customer{background:var(--customer-bg);border-color:#A9DFBF;color:var(--customer);}
+.s-customer .plate-status{background:var(--customer);color:#fff;}
+.s-lose{background:var(--lose-bg);border-color:#D7BDE2;color:var(--lose);}
+.s-lose .plate-status{background:var(--lose);color:#fff;}
+.s-repair{background:var(--repair-bg);border-color:#FAD7A0;color:var(--repair);}
+.s-repair .plate-status{background:var(--repair);color:#fff;}
+.s-none{background:var(--gray-100);border-color:var(--gray-200);color:var(--muted);}
+.s-none .plate-status{background:var(--gray-400);color:#fff;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,10,30,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:300;padding:1rem;}
+.modal{background:#fff;border-radius:16px;width:480px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.modal-header{padding:1.25rem 1.5rem 1rem;border-bottom:1px solid var(--gray-100);display:flex;align-items:flex-start;justify-content:space-between;}
+.modal-title{font-family:'Kanit',sans-serif;font-size:18px;font-weight:600;}
+.modal-plate{font-size:13px;color:var(--muted);margin-top:2px;}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:2px;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:1.25rem 1.5rem;}
+.modal-foot{padding:1rem 1.5rem;border-top:1px solid var(--gray-100);display:flex;justify-content:flex-end;gap:8px;}
+
+/* FORM */
+.fld{margin-bottom:.875rem;}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;}
+.fld input,.fld select,.fld textarea{width:100%;height:38px;border:1.5px solid var(--gray-200);border-radius:8px;padding:0 10px;font-family:'Sarabun',sans-serif;font-size:14px;outline:none;transition:border .15s;color:var(--text);background:#fff;}
+.fld textarea{height:72px;padding:8px 10px;resize:vertical;}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--red);}
+.fld input[readonly]{background:var(--gray-50);color:var(--muted);}
+.fld-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+
+/* STATUS CHANGE BUTTONS */
+.status-opts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem;}
+.st-btn{padding:10px 8px;border-radius:10px;border:2px solid;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
+.st-btn:hover{transform:translateY(-1px);}
+.st-btn.active{box-shadow:0 4px 12px rgba(0,0,0,.15);}
+.st-stock{background:var(--stock-bg);border-color:var(--stock);color:var(--stock);}
+.st-admin{background:var(--admin-bg);border-color:var(--admin);color:var(--admin);}
+.st-sc{background:var(--sc-bg);border-color:var(--sc);color:var(--sc);}
+.st-customer{background:var(--customer-bg);border-color:var(--customer);color:var(--customer);}
+.st-lose{background:var(--lose-bg);border-color:var(--lose);color:var(--lose);}
+.st-repair{background:var(--repair-bg);border-color:var(--repair);color:var(--repair);}
+
+/* INFO ROW */
+.info-row{display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;}
+.info-chip{font-size:12px;padding:4px 10px;border-radius:6px;background:var(--gray-100);color:var(--muted);}
+.info-chip b{color:var(--text);}
+
+/* BUTTONS */
+.btn{height:38px;padding:0 18px;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-weight:500;}
+.btn-p{background:var(--red);color:#fff;}.btn-p:hover{background:var(--red-dark);}
+.btn-p:disabled{background:var(--gray-400);cursor:not-allowed;}
+.btn-s{background:#fff;color:var(--text);border:1.5px solid var(--gray-200);}.btn-s:hover{background:var(--gray-50);}
+.sp{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;padding:10px 16px;border-radius:10px;font-size:13px;font-family:'Sarabun',sans-serif;z-index:500;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;max-width:300px;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.ok{background:#1D8348;color:#fff;}
+.toast.err{background:var(--red-dark);color:#fff;}
+.toast.info{background:var(--gray-800);color:#fff;}
+
+/* DIVIDER */
+.section-divider{height:1px;background:var(--gray-200);margin:.875rem 0;}
+.empty{text-align:center;padding:2rem;color:var(--muted);font-size:13px;}
+
+.hidden{display:none!important;}
+input[type=file]{display:none;}
+
+/* LOADING SCREEN */
+.loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:12px;}
+.sp-lg{width:36px;height:36px;border:3px solid var(--gray-200);border-top-color:var(--red);border-radius:50%;animation:rot .8s linear infinite;}
+.loading-screen p{font-size:13px;color:var(--muted);}
+
+@media(max-width:640px){
+  .plates-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}
+  .filterbar{gap:8px;}
+  .statsbar{gap:.5rem;}
+  .fld-row{grid-template-columns:1fr;}
+  .status-opts{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🚗</div>
+    <div class="login-title">ระบบป้ายแดง</div>
+    <div class="login-sub">Red Plate Management System</div>
+    <input class="login-input" type="password" id="pwInput" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-screen hidden" id="loadingScreen">
+  <div class="sp-lg"></div>
+  <p>กำลังโหลดข้อมูล...</p>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-logo">🚗</span>
+      <div>
+        <div class="topbar-title">ระบบบริหารป้ายแดง</div>
+        <div class="topbar-sub">Red Plate Management</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="sync-badge"><span class="dot" id="syncDot"></span><span id="syncTxt">กำลังโหลด...</span></div>
+      <button class="btn btn-s" style="height:30px;font-size:12px" onclick="loadData()">↻ รีโหลด</button>
+    </div>
+  </div>
+
+  <div class="filterbar">
+    <div class="filter-group">
+      <span class="filter-label">บริษัท</span>
+      <button class="fbtn on" onclick="setFilter('company','ALL',this)">ทั้งหมด</button>
+      <button class="fbtn" onclick="setFilter('company','KY',this)">KY</button>
+      <button class="fbtn" onclick="setFilter('company','KK',this)">KK</button>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">สถานะ</span>
+      <button class="fbtn on" onclick="setFilter('status','ALL',this)">ทั้งหมด</button>
+      <button class="fbtn" onclick="setFilter('status','Stock',this)">Stock</button>
+      <button class="fbtn" onclick="setFilter('status','Admin',this)">Admin</button>
+      <button class="fbtn" onclick="setFilter('status','SC',this)">SC</button>
+      <button class="fbtn" onclick="setFilter('status','Customer',this)">Customer</button>
+      <button class="fbtn" onclick="setFilter('status','Lose',this)">Lose</button>
+      <button class="fbtn" onclick="setFilter('status','Repair',this)">Repair</button>
+    </div>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" type="text" placeholder="ค้นหาทะเบียน..." id="searchInput" oninput="render()">
+    </div>
+  </div>
+
+  <div class="statsbar" id="statsBar"></div>
+  <div id="mainContent"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalTitle">เปลี่ยนสถานะ</div>
+        <div class="modal-plate" id="modalPlate"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════
+//  CONFIG
+// ══════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby_GT-gWY7hK5y5lZ16bOQNvPipqCm38xLoa3Kqcb7nBQLxmnDCGYMVFVsAO2Svfcys/exec';
+const ADMIN_PW = '111483';
+
+// ══════════════════════════════
+//  STATE
+// ══════════════════════════════
+let plates = []; // parsed from Stock sheet
+let withdraws = []; // parsed from Withdraw sheet
+let filters = { company: 'ALL', status: 'ALL' };
+let currentPlate = null;
+
+// ══════════════════════════════
+//  LOGIN
+// ══════════════════════════════
+function doLogin() {
+  const pw = document.getElementById('pwInput').value;
+  if (pw === ADMIN_PW) {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    document.getElementById('loadingScreen').classList.remove('hidden');
+    loadData();
+  } else {
+    document.getElementById('loginErr').textContent = 'รหัสผ่านไม่ถูกต้อง';
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwInput').focus();
+  }
+}
+
+// ══════════════════════════════
+//  API
+// ══════════════════════════════
+async function gasGet(action) {
+  const r = await fetch(GAS_URL + '?action=' + action);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+async function gasPost(params) {
+  const body = new URLSearchParams(params);
+  const r = await fetch(GAS_URL, { method: 'POST', body });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  try { return await r.json(); } catch(e) { return {ok: true}; }
+}
+
+// ══════════════════════════════
+//  LOAD DATA
+// ══════════════════════════════
+async function loadData() {
+  setSyncState('loading', 'กำลังโหลด...');
+  try {
+    const [stockData, wdData] = await Promise.all([
+      gasGet('getStock'),
+      gasGet('getWithdraw')
+    ]);
+    plates = parseStock(stockData.values || []);
+    withdraws = parseWithdraw(wdData.values || []);
+    render();
+    setSyncState('ok', 'อัปเดตแล้ว ' + nowTime());
+    toast('โหลดข้อมูลสำเร็จ ✓', 'ok');
+  } catch(e) {
+    setSyncState('err', 'โหลดไม่สำเร็จ');
+    toast('โหลดไม่สำเร็จ: ' + e.message, 'err', 6000);
+  }
+  document.getElementById('loadingScreen').classList.add('hidden');
+}
+
+function parseStock(rows) {
+  if (rows.length < 2) return [];
+  return rows.slice(1).map(r => ({
+    licenseNo: r[0]||'',
+    plateCode:  r[1]||'',
+    province:   r[2]||'',
+    plateNo:    r[3]||'',
+    company:    r[5]||'',
+    status:     r[6]||''
+  })).filter(p => p.plateNo);
+}
+
+function parseWithdraw(rows) {
+  if (rows.length < 2) return [];
+  return rows.slice(1).map(r => ({
+    bookingDate:  r[0]||'',   // วันที่จอง
+    dateWithdraw: r[1]||'',   // วันที่เบิก
+    plateNo:      r[2]||'',   // เลขทะเบียนป้ายแดง
+    withdrawBy:   r[3]||'',   // ผู้เบิก
+    useType:      r[4]||'',   // ประเภทใช้งาน
+    chassisNo:    r[5]||'',   // หมายเลขตัวรถ
+    engineNo:     r[6]||'',   // หมายเลขเครื่องยนต์
+    customerName: r[7]||'',   // ชื่อนามสกุล_ผู้ขับรถ
+    sc:           r[8]||'',   // ที่ปรึกษาการขาย
+    receiveDate:  r[9]||'',   // วันที่รับรถ/ปล่อยรถ
+    dueDate:      r[10]||'',  // วันครบกำหนดคืนป้าย
+    depositDate:  r[11]||'',  // วันที่รับเงินมัดจำ
+    depositAmt:   r[12]||'',  // จำนวนเงินมัดจำ
+    depositType:  r[13]||'',  // ประเภทเงินรับมัดจำ
+    depositRef:   r[14]||'',  // เลขที่ใบเสร็จเงินมัดจำ
+    refundDate:   r[15]||'',  // วันที่คืนป้าย/คืนเงินมัดจำ
+    refundType:   r[16]||'',  // ประเภทเงินคืนมัดจำ
+    refundRef:    r[17]||'',  // เลขที่เงินสดย่อย
+    transferBy:   r[18]||''   // ผู้ให้เบิก''
+  })).filter(w => w.plateNo);
+}
+
+// ══════════════════════════════
+//  FILTERS
+// ══════════════════════════════
+function setFilter(type, val, btn) {
+  filters[type] = val;
+  btn.closest('.filter-group').querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  render();
+}
+
+// ══════════════════════════════
+//  RENDER
+// ══════════════════════════════
+const STATUS_CLASS = {
+  'Stock':'s-stock','Admin':'s-admin','SC':'s-sc',
+  'Customer':'s-customer','Lose':'s-lose','Repair':'s-repair'
+};
+
+function render() {
+  const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
+
+  // filter
+  let filtered = plates.filter(p => {
+    if (filters.company !== 'ALL' && p.company !== filters.company) return false;
+    if (filters.status !== 'ALL' && p.status !== filters.status) return false;
+    if (search && !p.plateNo.toLowerCase().includes(search) && !p.plateCode.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  // stats
+  const counts = {};
+  ['Stock','Admin','SC','Customer','Lose','Repair',''].forEach(s => counts[s] = 0);
+  plates.forEach(p => { counts[p.status] = (counts[p.status]||0) + 1; });
+  const statColors = {
+    Stock:`background:var(--stock-bg);border-color:#AEB6BF;color:var(--stock)`,
+    Admin:`background:var(--admin-bg);border-color:#AED6F1;color:var(--admin)`,
+    SC:`background:var(--sc-bg);border-color:#F9E79F;color:var(--sc)`,
+    Customer:`background:var(--customer-bg);border-color:#A9DFBF;color:var(--customer)`,
+    Lose:`background:var(--lose-bg);border-color:#D7BDE2;color:var(--lose)`,
+    Repair:`background:var(--repair-bg);border-color:#FAD7A0;color:var(--repair)`
+  };
+  document.getElementById('statsBar').innerHTML =
+    Object.entries(statColors).map(([s,style]) =>
+      `<div class="stat-chip" style="${style}">
+        <span class="stat-num">${counts[s]||0}</span> ${s}
+      </div>`).join('') +
+    `<div class="stat-chip" style="background:var(--gray-100);border-color:var(--gray-200);color:var(--muted);margin-left:auto">
+      รวม <span class="stat-num" style="margin-left:4px">${plates.length}</span> ป้าย
+    </div>`;
+
+  // group by company then sort
+  const groups = {};
+  filtered.forEach(p => {
+    const co = p.company || 'อื่นๆ';
+    if (!groups[co]) groups[co] = [];
+    groups[co].push(p);
+  });
+  // sort within group
+  Object.values(groups).forEach(arr => arr.sort((a,b) => a.plateNo.localeCompare(b.plateNo, 'th', {numeric:true})));
+
+  const order = ['KY','KK',...Object.keys(groups).filter(k=>k!=='KY'&&k!=='KK')];
+  let html = '';
+  order.forEach(co => {
+    if (!groups[co]?.length) return;
+    const arr = groups[co];
+    html += `<div class="company-section">
+      <div class="company-header">
+        <span class="company-badge">${co}</span>
+        <span class="company-count">${arr.length} ป้าย</span>
+      </div>
+      <div class="plates-grid">
+        ${arr.map(p => {
+          const sc = STATUS_CLASS[p.status] || 's-none';
+          return `<div class="plate-card ${sc}" onclick="openPlate('${p.plateNo}')">
+            <div class="plate-num">${p.plateNo}</div>
+            <div class="plate-province">${p.province}</div>
+            <span class="plate-status">${p.status||'ไม่ระบุ'}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+
+  if (!html) html = '<div class="empty">ไม่พบป้ายแดงที่ตรงกับเงื่อนไข</div>';
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+// ══════════════════════════════
+//  PLATE MODAL
+// ══════════════════════════════
+function openPlate(plateNo) {
+  const p = plates.find(x => x.plateNo === plateNo);
+  if (!p) return;
+  currentPlate = p;
+
+  // get last withdraw record for this plate
+  const lastWD = [...withdraws].reverse().find(w => w.plateNo === plateNo);
+
+  document.getElementById('modalTitle').textContent = 'จัดการป้ายแดง';
+  document.getElementById('modalPlate').textContent = plateNo + ' · ' + (p.company||'') + ' · ' + (p.province||'');
+  document.getElementById('modalOverlay').classList.remove('hidden');
+
+  renderModalBody(p, lastWD);
+}
+
+function renderModalBody(p, lastWD) {
+  const status = p.status;
+  const body = document.getElementById('modalBody');
+  const foot = document.getElementById('modalFoot');
+
+  // current status info
+  let infoHtml = `
+    <div class="info-row">
+      <div class="info-chip">สถานะปัจจุบัน: <b>${status||'ไม่ระบุ'}</b></div>
+      <div class="info-chip">บริษัท: <b>${p.company}</b></div>
+      ${p.licenseNo ? `<div class="info-chip">ใบอนุญาต: <b>${p.licenseNo}</b></div>`:''}
+    </div>`;
+
+  // last withdraw info
+  if (lastWD && lastWD.withdrawBy) {
+    infoHtml += `
+      <div class="info-row">
+        ${lastWD.withdrawBy ? `<div class="info-chip">เบิกโดย: <b>${lastWD.withdrawBy}</b></div>`:''}
+        ${lastWD.customerName ? `<div class="info-chip">ลูกค้า: <b>${lastWD.customerName}</b></div>`:''}
+        ${lastWD.receiveDate ? `<div class="info-chip">วันรับรถ: <b>${fmtDate(lastWD.receiveDate)}</b></div>`:''}
+        ${lastWD.dueDate ? `<div class="info-chip">ครบกำหนด: <b>${fmtDate(lastWD.dueDate)}</b></div>`:''}
+      </div>`;
+  }
+  infoHtml += '<div class="section-divider"></div>';
+
+  // render form based on status
+  let formHtml = '';
+  let footHtml = `<button class="btn btn-s" onclick="closeModal()">ปิด</button>`;
+
+  if (status === 'Stock') {
+    formHtml = `
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">เปลี่ยนสถานะเป็น Admin</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Admin นำป้ายแดงออกจาก Stock เพื่อเตรียมให้ SC เบิก</p>`;
+    footHtml = `
+      <button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-p" id="modalSaveBtn" onclick="changeToAdmin()">นำออกให้ Admin</button>`;
+
+  } else if (status === 'Admin') {
+    formHtml = `
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">SC เบิกป้ายแดง</div>
+      <div class="fld-row">
+        <div class="fld"><label>วันที่จอง</label><input id="f-bookdate" type="date"></div>
+        <div class="fld"><label>ผู้เบิก (ชื่อ SC) *</label><input id="f-scname" placeholder="ชื่อ SC ที่เบิก"></div>
+      </div>
+      <div class="fld"><label>ประเภทการใช้งาน</label>
+        <select id="f-usetype">
+          <option value="">-- เลือก --</option>
+          <option value="รถใหม่ลูกค้า">รถใหม่ลูกค้า</option>
+          <option value="รถสต็อก">รถสต็อก</option>
+          <option value="ทดสอบ">ทดสอบ</option>
+          <option value="อื่นๆ">อื่นๆ</option>
+        </select>
+      </div>
+      <div class="fld"><label>วันที่เบิก *</label><input id="f-wddate" type="date" value="${todayISO()}"></div>`;
+    footHtml = `
+      <button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-p" id="modalSaveBtn" onclick="withdrawPlate()">บันทึกการเบิก → SC</button>`;
+
+  } else if (status === 'SC') {
+    formHtml = `
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">SC นำป้ายให้ลูกค้า</div>
+      <div class="fld"><label>ที่ปรึกษาการขาย (SC)</label>
+        <input id="f-sc" value="${lastWD?.withdrawBy||''}" readonly style="background:var(--gray-50);color:var(--muted)">
+      </div>
+      <div class="fld"><label>ชื่อ-นามสกุล ลูกค้า *</label><input id="f-custname" placeholder="ชื่อลูกค้า"></div>
+      <div class="fld-row">
+        <div class="fld"><label>หมายเลขตัวรถ *</label><input id="f-chassis" placeholder="หมายเลขตัวรถ"></div>
+        <div class="fld"><label>หมายเลขเครื่องยนต์</label><input id="f-engine" placeholder="หมายเลขเครื่องยนต์"></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label>วันที่รับรถ/ปล่อยรถ *</label><input id="f-recvdate" type="date" value="${todayISO()}"></div>
+        <div class="fld"><label>วันครบกำหนดคืนป้าย</label><input id="f-duedate" type="date"></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label>วันที่รับเงินมัดจำ *</label><input id="f-depositdate" type="date" value="${todayISO()}"></div>
+        <div class="fld"><label>จำนวนเงินมัดจำ</label><input id="f-deposit" type="number" placeholder="0"></div>
+      </div>`;
+    footHtml = `
+      <button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-p" id="modalSaveBtn" onclick="handToCustomer()">ปล่อยรถให้ลูกค้า → Customer</button>`;
+
+  } else if (status === 'Customer') {
+    formHtml = `
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">รับป้ายแดงคืน → Admin</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">ลูกค้าคืนป้ายแดงแล้ว — บันทึกวันคืนป้าย แล้วเปลี่ยนสถานะเป็น Admin</p>
+      <div class="fld"><label>วันที่คืนป้าย/คืนเงินมัดจำ *</label><input id="f-refunddate" type="date" value="${todayISO()}"></div>
+      <div class="fld-row">
+        <div class="fld"><label>ประเภทเงินคืนมัดจำ</label>
+          <select id="f-refundtype">
+            <option value="">-- เลือก --</option>
+            <option value="เงินสด">เงินสด</option>
+            <option value="โอน">โอน</option>
+          </select>
+        </div>
+        <div class="fld"><label>เลขที่เงินสดย่อย</label><input id="f-refundref" placeholder="เลขที่เงินสดย่อย"></div>
+      </div>`;
+    footHtml = `
+      <button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-p" id="modalSaveBtn" onclick="returnToStock()">รับคืน → Admin</button>`;
+
+  } else if (status === 'Lose' || status === 'Repair') {
+    formHtml = `
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">Admin — เปลี่ยนสถานะ</div>
+      <div class="status-opts">
+        <div class="st-btn st-stock" onclick="adminChangeStatus('Stock',this)">Stock</div>
+        <div class="st-btn st-repair" onclick="adminChangeStatus('Repair',this)">Repair</div>
+        <div class="st-btn st-lose" onclick="adminChangeStatus('Lose',this)">Lose</div>
+      </div>`;
+    footHtml = `<button class="btn btn-s" onclick="closeModal()">ปิด</button>`;
+
+  } else {
+    // ไม่มีสถานะ — Admin กำหนดสถานะ
+    formHtml = `
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">Admin — กำหนดสถานะเริ่มต้น</div>
+      <div class="status-opts">
+        <div class="st-btn st-stock" onclick="adminChangeStatus('Stock',this)">Stock</div>
+        <div class="st-btn st-admin" onclick="adminChangeStatus('Admin',this)">Admin</div>
+        <div class="st-btn st-repair" onclick="adminChangeStatus('Repair',this)">Repair</div>
+        <div class="st-btn st-lose" onclick="adminChangeStatus('Lose',this)">Lose</div>
+      </div>`;
+    footHtml = `<button class="btn btn-s" onclick="closeModal()">ปิด</button>`;
+  }
+
+  // Admin override — always show at bottom
+  if (!['Lose','Repair',''].includes(status)) {
+    formHtml += `
+      <div class="section-divider"></div>
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">Admin Override</div>
+      <div class="status-opts">
+        <div class="st-btn st-stock" onclick="adminChangeStatus('Stock',this)">Stock</div>
+        <div class="st-btn st-admin" onclick="adminChangeStatus('Admin',this)">Admin</div>
+        <div class="st-btn st-lose" onclick="adminChangeStatus('Lose',this)">Lose</div>
+        <div class="st-btn st-repair" onclick="adminChangeStatus('Repair',this)">Repair</div>
+      </div>`;
+  }
+
+  body.innerHTML = infoHtml + formHtml;
+  foot.innerHTML = footHtml;
+}
+
+// ══════════════════════════════
+//  STATUS ACTIONS
+// ══════════════════════════════
+async function changeToAdmin() {
+  await doUpdateStatus('Admin');
+}
+
+async function withdrawPlate() {
+  const scname = document.getElementById('f-scname')?.value.trim();
+  const wddate = document.getElementById('f-wddate')?.value;
+  if (!scname) { toast('กรุณาระบุผู้เบิก', 'err'); return; }
+  if (!wddate) { toast('กรุณาระบุวันที่เบิก', 'err'); return; }
+
+  const row = [
+    document.getElementById('f-bookdate')?.value||'', // วันที่จอง
+    wddate, // วันที่เบิก
+    currentPlate.plateNo,
+    scname, // ผู้เบิก
+    document.getElementById('f-usetype')?.value||'', // ประเภทใช้งาน
+    '', // หมายเลขตัวรถ (กรอกตอนปล่อยรถ)
+    '', // หมายเลขเครื่องยนต์ (กรอกตอนปล่อยรถ)
+    '', // ชื่อนามสกุล_ผู้ขับรถ (กรอกตอน Customer)
+    '', // ที่ปรึกษาการขาย
+    '', // วันที่รับรถ/ปล่อยรถ
+    '', // วันครบกำหนดคืนป้าย
+    '', // วันที่รับเงินมัดจำ
+    '', // จำนวนเงินมัดจำ
+    '', // ประเภทเงินรับมัดจำ
+    '', // เลขที่ใบเสร็จเงินมัดจำ
+    '', // วันที่คืนป้าย/คืนเงินมัดจำ
+    '', // ประเภทเงินคืนมัดจำ
+    '', // เลขที่เงินสดย่อย
+    '' // ผู้ให้เบิก
+  ];
+
+  const btn = document.getElementById('modalSaveBtn');
+  setLoading(btn, true);
+  try {
+    await gasPost({ action: 'addWithdraw', row: JSON.stringify(row) });
+    await doUpdateStatus('SC', false);
+    toast('บันทึกการเบิกสำเร็จ ✓', 'ok');
+    closeModal();
+    await loadData();
+  } catch(e) {
+    toast('เกิดข้อผิดพลาด: ' + e.message, 'err', 5000);
+    setLoading(btn, false);
+  }
+}
+
+async function handToCustomer() {
+  const custname = document.getElementById('f-custname')?.value.trim();
+  const recvdate = document.getElementById('f-recvdate')?.value;
+  const depositdate = document.getElementById('f-depositdate')?.value;
+  if (!custname) { toast('กรุณาระบุชื่อลูกค้า', 'err'); return; }
+  if (!recvdate) { toast('กรุณาระบุวันที่รับรถ/ปล่อยรถ', 'err'); return; }
+  if (!depositdate) { toast('กรุณาระบุวันที่รับเงินมัดจำ', 'err'); return; }
+
+  // find last withdraw row for this plate and update it
+  const lastWD = [...withdraws].reverse().find(w => w.plateNo === currentPlate.plateNo);
+
+  const row = [
+    lastWD?.bookingDate||'', // วันที่จอง
+    lastWD?.dateWithdraw||'', // วันที่เบิก
+    currentPlate.plateNo, // เลขทะเบียนป้ายแดง
+    lastWD?.withdrawBy||'', // ผู้เบิก
+    lastWD?.useType||'', // ประเภทใช้งาน
+    document.getElementById('f-chassis')?.value||lastWD?.chassisNo||'', // หมายเลขตัวรถ
+    document.getElementById('f-engine')?.value||lastWD?.engineNo||'', // หมายเลขเครื่องยนต์
+    custname, // ชื่อนามสกุล_ผู้ขับรถ
+    lastWD?.withdrawBy||'', // ที่ปรึกษาการขาย (col I = col D เสมอ)
+    recvdate, // วันที่รับรถ/ปล่อยรถ
+    document.getElementById('f-duedate')?.value||'', // วันครบกำหนดคืนป้าย
+    document.getElementById('f-depositdate')?.value||'', // L: วันที่รับเงินมัดจำ
+    document.getElementById('f-deposit')?.value||'', // M: จำนวนเงินมัดจำ
+    lastWD?.depositType||'', // ประเภทเงินรับมัดจำ
+    lastWD?.depositRef||'', // เลขที่ใบเสร็จเงินมัดจำ
+    '', // วันที่คืนป้าย/คืนเงินมัดจำ
+    '', // ประเภทเงินคืนมัดจำ
+    '', // เลขที่เงินสดย่อย
+    '' // ผู้ให้เบิก
+  ];
+
+  const btn = document.getElementById('modalSaveBtn');
+  setLoading(btn, true);
+  try {
+    if (lastWD) {
+      // update existing withdraw row
+      await gasPost({ action: 'updateWithdrawFull', plateNo: currentPlate.plateNo, row: JSON.stringify(row) });
+    } else {
+      await gasPost({ action: 'addWithdraw', row: JSON.stringify(row) });
+    }
+    await doUpdateStatus('Customer', false);
+    toast('บันทึกวันปล่อยรถสำเร็จ ✓', 'ok');
+    closeModal();
+    await loadData();
+  } catch(e) {
+    toast('เกิดข้อผิดพลาด: ' + e.message, 'err', 5000);
+    setLoading(btn, false);
+  }
+}
+
+async function returnToStock() {
+  const refundDate = document.getElementById('f-refunddate')?.value||'';
+  if (!refundDate) { toast('กรุณาระบุวันที่คืนป้าย/คืนเงินมัดจำ', 'err'); return; }
+  const btn = document.getElementById('modalSaveBtn');
+  setLoading(btn, true);
+  try {
+    const refundType = document.getElementById('f-refundtype')?.value||'';
+    const refundRef = document.getElementById('f-refundref')?.value||'';
+    await gasPost({
+      action: 'updateRefund',
+      plateNo: currentPlate.plateNo,
+      refundDate, refundType, refundRef
+    });
+    await doUpdateStatus('Admin', false);
+    toast('รับป้ายคืนเรียบร้อย → Admin ✓', 'ok');
+    closeModal();
+    await loadData();
+  } catch(e) {
+    toast('เกิดข้อผิดพลาด: ' + e.message, 'err', 5000);
+    setLoading(btn, false);
+  }
+}
+
+async function adminChangeStatus(status, btn) {
+  document.querySelectorAll('.st-btn').forEach(b => b.style.opacity = '0.5');
+  btn.style.opacity = '1';
+  btn.style.fontWeight = '700';
+  await doUpdateStatus(status);
+}
+
+async function doUpdateStatus(newStatus, reload=true) {
+  try {
+    const r = await gasPost({ action: 'updateStatus', plateNo: currentPlate.plateNo, status: newStatus });
+    // update local state
+    const p = plates.find(x => x.plateNo === currentPlate.plateNo);
+    if (p) p.status = newStatus;
+    if (reload) {
+      toast(`เปลี่ยนสถานะเป็น ${newStatus} สำเร็จ ✓`, 'ok');
+      closeModal();
+      render();
+    }
+  } catch(e) {
+    toast('บันทึกไม่สำเร็จ: ' + e.message, 'err', 5000);
+    throw e;
+  }
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.add('hidden');
+  currentPlate = null;
+}
+
+// ══════════════════════════════
+//  UTILS
+// ══════════════════════════════
+function setSyncState(s, msg) {
+  const d = document.getElementById('syncDot');
+  d.className = 'dot' + (s==='err'?' err':s==='loading'?' loading':'');
+  document.getElementById('syncTxt').textContent = msg;
+}
+function nowTime() { return new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}); }
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function fmtDate(d) {
+  if (!d) return '—';
+  try {
+    const dt = new Date(d);
+    if (isNaN(dt)) return d;
+    return dt.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+  } catch(e) { return d; }
+}
+function toast(msg, type='ok', dur=3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = `toast ${type} show`;
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), dur);
+}
+function setLoading(btn, on) {
+  if (on) { btn.disabled=true; btn._o=btn.innerHTML; btn.innerHTML='<span class="sp"></span>'; }
+  else { btn.disabled=false; btn.innerHTML=btn._o; }
+}
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Login on Enter
+document.getElementById('pwInput').focus();
+</script>
+</body>
+</html>

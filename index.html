@@ -8,12 +8,12 @@
 <style>
 :root {
   --red:#C0392B;--red-dark:#922B21;--red-light:#F1948A;--red-bg:#FDEDEC;
-  --stock:#2C3E50;--stock-bg:#EAF0F6;
-  --admin:#1A5276;--admin-bg:#D6EAF8;
-  --sc:#7D6608;--sc-bg:#FEF9E7;
-  --customer:#1D8348;--customer-bg:#E9F7EF;
-  --lose:#6C3483;--lose-bg:#F5EEF8;
-  --repair:#784212;--repair-bg:#FEF5E7;
+  --stock:#5B2D8E;--stock-bg:#EDE7F6;
+  --admin:#1B6B2F;--admin-bg:#E8F5E9;
+  --sc:#E65100;--sc-bg:#FFF3E0;
+  --customer:#B71C1C;--customer-bg:#FFEBEE;
+  --lose:#263238;--lose-bg:#ECEFF1;
+  --repair:#546E7A;--repair-bg:#F5F7F8;
   --gray-900:#1a1a2e;--gray-800:#2d2d44;--gray-700:#4a4a65;
   --gray-400:#9999aa;--gray-200:#e8e8f0;--gray-100:#f4f4f8;--gray-50:#fafafc;
   --bg:#f0f0f5;--card:#fff;--text:#1a1a2e;--muted:#6b6b80;
@@ -83,18 +83,18 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .plate-status{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;display:inline-block;letter-spacing:.03em;}
 
 /* STATUS COLORS */
-.s-stock{background:var(--stock-bg);border-color:#AEB6BF;color:var(--stock);}
+.s-stock{background:var(--stock-bg);border-color:#9C6CC0;color:var(--stock);}
 .s-stock .plate-status{background:var(--stock);color:#fff;}
-.s-admin{background:var(--admin-bg);border-color:#AED6F1;color:var(--admin);}
+.s-admin{background:var(--admin-bg);border-color:#66BB6A;color:var(--admin);}
 .s-admin .plate-status{background:var(--admin);color:#fff;}
-.s-sc{background:var(--sc-bg);border-color:#F9E79F;color:var(--sc);}
+.s-sc{background:var(--sc-bg);border-color:#FFA726;color:var(--sc);}
 .s-sc .plate-status{background:var(--sc);color:#fff;}
-.s-customer{background:var(--customer-bg);border-color:#A9DFBF;color:var(--customer);}
+.s-customer{background:var(--customer-bg);border-color:#EF5350;color:var(--customer);}
 .s-customer .plate-status{background:var(--customer);color:#fff;}
-.s-lose{background:var(--lose-bg);border-color:#D7BDE2;color:var(--lose);}
+.s-lose{background:var(--lose-bg);border-color:#546E7A;color:var(--lose);}
 .s-lose .plate-status{background:var(--lose);color:#fff;}
-.s-repair{background:var(--repair-bg);border-color:#FAD7A0;color:var(--repair);}
-.s-repair .plate-status{background:var(--repair);color:#fff;}
+.s-repair{background:var(--repair-bg);border-color:#90A4AE;color:var(--repair);}
+.s-repair .plate-status{background:var(--repair);color:#fff;filter:brightness(1.2);}
 .s-none{background:var(--gray-100);border-color:var(--gray-200);color:var(--muted);}
 .s-none .plate-status{background:var(--gray-400);color:#fff;}
 
@@ -123,11 +123,11 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .st-btn{padding:10px 8px;border-radius:10px;border:2px solid;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
 .st-btn:hover{transform:translateY(-1px);}
 .st-btn.active{box-shadow:0 4px 12px rgba(0,0,0,.15);}
-.st-stock{background:var(--stock-bg);border-color:var(--stock);color:var(--stock);}
-.st-admin{background:var(--admin-bg);border-color:var(--admin);color:var(--admin);}
-.st-sc{background:var(--sc-bg);border-color:var(--sc);color:var(--sc);}
-.st-customer{background:var(--customer-bg);border-color:var(--customer);color:var(--customer);}
-.st-lose{background:var(--lose-bg);border-color:var(--lose);color:var(--lose);}
+.st-stock{background:var(--stock);border-color:var(--stock);color:#fff;}
+.st-admin{background:var(--admin);border-color:var(--admin);color:#fff;}
+.st-sc{background:var(--sc);border-color:var(--sc);color:#fff;}
+.st-customer{background:var(--customer);border-color:var(--customer);color:#fff;}
+.st-lose{background:var(--lose);border-color:var(--lose);color:#fff;}
 .st-repair{background:var(--repair-bg);border-color:var(--repair);color:var(--repair);}
 
 /* INFO ROW */
@@ -330,7 +330,8 @@ function parseStock(rows) {
     province:   r[2]||'',
     plateNo:    r[3]||'',
     company:    r[5]||'',
-    status:     r[6]||''
+    status:     r[6]||'',
+    remark:     r[7]||''
   })).filter(p => p.plateNo);
 }
 
@@ -393,12 +394,12 @@ function render() {
   ['Stock','Admin','SC','Customer','Lose','Repair',''].forEach(s => counts[s] = 0);
   plates.forEach(p => { counts[p.status] = (counts[p.status]||0) + 1; });
   const statColors = {
-    Stock:`background:var(--stock-bg);border-color:#AEB6BF;color:var(--stock)`,
-    Admin:`background:var(--admin-bg);border-color:#AED6F1;color:var(--admin)`,
-    SC:`background:var(--sc-bg);border-color:#F9E79F;color:var(--sc)`,
-    Customer:`background:var(--customer-bg);border-color:#A9DFBF;color:var(--customer)`,
-    Lose:`background:var(--lose-bg);border-color:#D7BDE2;color:var(--lose)`,
-    Repair:`background:var(--repair-bg);border-color:#FAD7A0;color:var(--repair)`
+    Stock:`background:var(--stock);border-color:var(--stock);color:#fff`,
+    Admin:`background:var(--admin);border-color:var(--admin);color:#fff`,
+    SC:`background:var(--sc);border-color:var(--sc);color:#fff`,
+    Customer:`background:var(--customer);border-color:var(--customer);color:#fff`,
+    Lose:`background:var(--lose);border-color:var(--lose);color:#fff`,
+    Repair:`background:var(--repair-bg);border-color:var(--repair);color:var(--repair)`
   };
   document.getElementById('statsBar').innerHTML =
     Object.entries(statColors).map(([s,style]) =>
@@ -436,6 +437,7 @@ function render() {
             <div class="plate-num">${p.plateNo}</div>
             <div class="plate-province">${p.province}</div>
             <span class="plate-status">${p.status||'ไม่ระบุ'}</span>
+            ${p.remark?`<div style="font-size:9px;margin-top:3px;opacity:.65;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.remark}</div>`:''}
           </div>`;
         }).join('')}
       </div>

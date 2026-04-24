@@ -155,6 +155,30 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .empty{text-align:center;padding:2rem;color:var(--muted);font-size:13px;}
 
 .hidden{display:none!important;}
+
+/* TABS */
+.tab-bar{background:#fff;border-bottom:2px solid var(--gray-200);display:flex;align-items:stretch;gap:0;position:sticky;top:56px;z-index:91;}
+.tab-btn{padding:.75rem 1.5rem;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:500;color:var(--muted);border:none;background:transparent;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;display:flex;align-items:center;gap:6px;}
+.tab-btn:hover{color:var(--text);background:var(--gray-50);}
+.tab-btn.on{color:var(--gray-900);border-bottom-color:var(--gray-900);font-weight:600;}
+.tab-count{font-size:11px;padding:2px 7px;border-radius:10px;background:var(--gray-200);color:var(--gray-700);font-weight:600;font-family:'Kanit',sans-serif;}
+.tab-btn.on .tab-count{background:var(--gray-900);color:#fff;}
+
+/* FILTER BAR */
+.filterbar{background:#fff;border-bottom:1px solid var(--gray-200);padding:.625rem 1.5rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:calc(56px + 48px);z-index:90;box-shadow:0 2px 4px rgba(0,0,0,.04);}
+.btn-clear{padding:5px 10px;border-radius:20px;border:1.5px solid var(--gray-200);background:#fff;font-family:'Sarabun',sans-serif;font-size:11px;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap;}
+.btn-clear:hover{border-color:var(--red);color:var(--red);background:var(--red-bg);}
+
+/* STATS INLINE */
+.statsbar-inline{display:flex;gap:5px;flex-wrap:wrap;}
+.stat-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid;white-space:nowrap;}
+.stat-num{font-family:'Kanit',sans-serif;font-size:13px;font-weight:600;}
+
+/* GROUP HEADER */
+.group-header{display:flex;align-items:center;gap:10px;margin-bottom:.75rem;padding:.5rem 0;}
+.group-title{font-family:'Kanit',sans-serif;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.group-line{flex:1;height:1px;background:var(--gray-200);}
+.group-count{font-size:11px;color:var(--muted);background:var(--gray-100);padding:2px 8px;border-radius:10px;}
 input[type=file]{display:none;}
 
 /* LOADING SCREEN */
@@ -208,30 +232,38 @@ input[type=file]{display:none;}
     </div>
   </div>
 
+  <!-- TABS -->
+  <div class="tab-bar">
+    <button class="tab-btn on" onclick="setTab('active',this)" id="tab-active">
+      🟢 กำลังใช้งาน <span class="tab-count" id="tc-active">0</span>
+    </button>
+    <button class="tab-btn" onclick="setTab('inactive',this)" id="tab-inactive">
+      🔒 ไม่ได้ใช้งาน <span class="tab-count" id="tc-inactive">0</span>
+    </button>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 .5rem">
+      <div class="statsbar-inline" id="statsBar"></div>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
   <div class="filterbar">
     <div class="filter-group">
       <span class="filter-label">บริษัท</span>
-      <button class="fbtn on" onclick="setFilter('company','ALL',this)">ทั้งหมด</button>
-      <button class="fbtn" onclick="setFilter('company','KY',this)">KY</button>
-      <button class="fbtn" onclick="setFilter('company','KK',this)">KK</button>
+      <button class="fbtn on" id="fb-co-ALL" onclick="setFilter('company','ALL',this)">ทั้งหมด</button>
+      <button class="fbtn" id="fb-co-KK" onclick="setFilter('company','KK',this)">KK</button>
+      <button class="fbtn" id="fb-co-KY" onclick="setFilter('company','KY',this)">KY</button>
     </div>
-    <div class="filter-group">
+    <div class="filter-group" id="statusFilterGroup">
       <span class="filter-label">สถานะ</span>
-      <button class="fbtn on" onclick="setFilter('status','ALL',this)">ทั้งหมด</button>
-      <button class="fbtn" onclick="setFilter('status','Stock',this)">Stock</button>
-      <button class="fbtn" onclick="setFilter('status','Admin',this)">Admin</button>
-      <button class="fbtn" onclick="setFilter('status','SC',this)">SC</button>
-      <button class="fbtn" onclick="setFilter('status','Customer',this)">Customer</button>
-      <button class="fbtn" onclick="setFilter('status','Lose',this)">Lose</button>
-      <button class="fbtn" onclick="setFilter('status','Repair',this)">Repair</button>
+      <button class="fbtn on" id="fb-st-ALL" onclick="setFilter('status','ALL',this)">ทั้งหมด</button>
     </div>
     <div class="search-box">
       <span class="search-icon">🔍</span>
       <input class="search-input" type="text" placeholder="ค้นหาทะเบียน..." id="searchInput" oninput="render()">
     </div>
+    <button class="btn-clear" onclick="clearFilters()">✕ ล้างตัวกรอง</button>
   </div>
 
-  <div class="statsbar" id="statsBar"></div>
   <div id="mainContent"></div>
 </div>
 
@@ -262,10 +294,18 @@ const ADMIN_PW = '111483';
 // ══════════════════════════════
 //  STATE
 // ══════════════════════════════
-let plates = []; // parsed from Stock sheet
-let withdraws = []; // parsed from Withdraw sheet
+let plates = [];
+let withdraws = [];
 let filters = { company: 'ALL', status: 'ALL' };
+let currentTab = 'active'; // 'active' | 'inactive'
 let currentPlate = null;
+
+const ACTIVE_STATUSES   = ['Admin','SC','Customer'];
+const INACTIVE_STATUSES = ['Stock','Repair','Lose'];
+const STATUS_GROUPS = {
+  active:   [{key:'Admin',label:'Admin'},{key:'SC',label:'SC'},{key:'Customer',label:'Customer'}],
+  inactive: [{key:'Stock',label:'Stock'},{key:'Repair',label:'Repair'},{key:'Lose',label:'Lose'}]
+};
 
 // ══════════════════════════════
 //  LOGIN
@@ -312,6 +352,7 @@ async function loadData() {
     ]);
     plates = parseStock(stockData.values || []);
     withdraws = parseWithdraw(wdData.values || []);
+    updateStatusFilters();
     render();
     setSyncState('ok', 'อัปเดตแล้ว ' + nowTime());
     toast('โหลดข้อมูลสำเร็จ ✓', 'ok');
@@ -363,11 +404,38 @@ function parseWithdraw(rows) {
 // ══════════════════════════════
 //  FILTERS
 // ══════════════════════════════
+function setTab(tab, btn) {
+  currentTab = tab;
+  filters.status = 'ALL';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  updateStatusFilters();
+  render();
+}
+
 function setFilter(type, val, btn) {
   filters[type] = val;
   btn.closest('.filter-group').querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
   render();
+}
+
+function clearFilters() {
+  filters = { company: 'ALL', status: 'ALL' };
+  document.getElementById('searchInput').value = '';
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
+  document.getElementById('fb-co-ALL')?.classList.add('on');
+  document.getElementById('fb-st-ALL')?.classList.add('on');
+  render();
+}
+
+function updateStatusFilters() {
+  const grp = document.getElementById('statusFilterGroup');
+  if (!grp) return;
+  const statuses = STATUS_GROUPS[currentTab] || [];
+  grp.innerHTML = `<span class="filter-label">สถานะ</span>
+    <button class="fbtn on" id="fb-st-ALL" onclick="setFilter('status','ALL',this)">ทั้งหมด</button>
+    ${statuses.map(s=>`<button class="fbtn" id="fb-st-${s.key}" onclick="setFilter('status','${s.key}',this)">${s.label}</button>`).join('')}`;
 }
 
 // ══════════════════════════════
@@ -380,71 +448,80 @@ const STATUS_CLASS = {
 
 function render() {
   const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
+  const tabStatuses = currentTab === 'active' ? ACTIVE_STATUSES : INACTIVE_STATUSES;
+
+  // count all
+  const counts = {};
+  plates.forEach(p => { counts[p.status] = (counts[p.status]||0)+1; });
+  const activeCount   = ACTIVE_STATUSES.reduce((a,s)=>a+(counts[s]||0),0);
+  const inactiveCount = INACTIVE_STATUSES.reduce((a,s)=>a+(counts[s]||0),0);
+
+  // update tab counts
+  document.getElementById('tc-active').textContent   = activeCount;
+  document.getElementById('tc-inactive').textContent = inactiveCount;
+
+  // stats bar
+  const statColors = {
+    Stock:'background:var(--stock);border-color:var(--stock);color:#fff',
+    Admin:'background:var(--admin);border-color:var(--admin);color:#fff',
+    SC:'background:var(--sc);border-color:var(--sc);color:#fff',
+    Customer:'background:var(--customer);border-color:var(--customer);color:#fff',
+    Lose:'background:var(--lose);border-color:var(--lose);color:#fff',
+    Repair:'background:var(--repair-bg);border-color:var(--repair);color:var(--repair)'
+  };
+  document.getElementById('statsBar').innerHTML =
+    tabStatuses.map(s =>
+      `<div class="stat-chip" style="${statColors[s]}">
+        <span class="stat-num">${counts[s]||0}</span>${s}
+      </div>`).join('');
 
   // filter
   let filtered = plates.filter(p => {
+    if (!tabStatuses.includes(p.status)) return false;
     if (filters.company !== 'ALL' && p.company !== filters.company) return false;
     if (filters.status !== 'ALL' && p.status !== filters.status) return false;
     if (search && !p.plateNo.toLowerCase().includes(search) && !p.plateCode.toLowerCase().includes(search)) return false;
     return true;
   });
 
-  // stats
-  const counts = {};
-  ['Stock','Admin','SC','Customer','Lose','Repair',''].forEach(s => counts[s] = 0);
-  plates.forEach(p => { counts[p.status] = (counts[p.status]||0) + 1; });
-  const statColors = {
-    Stock:`background:var(--stock);border-color:var(--stock);color:#fff`,
-    Admin:`background:var(--admin);border-color:var(--admin);color:#fff`,
-    SC:`background:var(--sc);border-color:var(--sc);color:#fff`,
-    Customer:`background:var(--customer);border-color:var(--customer);color:#fff`,
-    Lose:`background:var(--lose);border-color:var(--lose);color:#fff`,
-    Repair:`background:var(--repair-bg);border-color:var(--repair);color:var(--repair)`
-  };
-  document.getElementById('statsBar').innerHTML =
-    Object.entries(statColors).map(([s,style]) =>
-      `<div class="stat-chip" style="${style}">
-        <span class="stat-num">${counts[s]||0}</span> ${s}
-      </div>`).join('') +
-    `<div class="stat-chip" style="background:var(--gray-100);border-color:var(--gray-200);color:var(--muted);margin-left:auto">
-      รวม <span class="stat-num" style="margin-left:4px">${plates.length}</span> ป้าย
-    </div>`;
-
-  // group by company then sort
-  const groups = {};
-  filtered.forEach(p => {
-    const co = p.company || 'อื่นๆ';
-    if (!groups[co]) groups[co] = [];
-    groups[co].push(p);
-  });
-  // sort within group
-  Object.values(groups).forEach(arr => arr.sort((a,b) => a.plateNo.localeCompare(b.plateNo, 'th', {numeric:true})));
-
-  const order = ['KY','KK',...Object.keys(groups).filter(k=>k!=='KY'&&k!=='KK')];
+  // group by status first, then by company (KK before KY)
+  const companyOrder = ['KK','KY'];
   let html = '';
-  order.forEach(co => {
-    if (!groups[co]?.length) return;
-    const arr = groups[co];
-    html += `<div class="company-section">
-      <div class="company-header">
-        <span class="company-badge">${co}</span>
-        <span class="company-count">${arr.length} ป้าย</span>
+
+  STATUS_GROUPS[currentTab].forEach(({key:status, label}) => {
+    if (filters.status !== 'ALL' && filters.status !== status) return;
+    const inStatus = filtered.filter(p => p.status === status);
+    if (!inStatus.length) return;
+
+    html += `<div style="padding:0 1.5rem 1.25rem">
+      <div class="group-header">
+        <span class="plate-status ${STATUS_CLASS[status]}" style="font-size:12px;padding:4px 12px">${label}</span>
+        <div class="group-line"></div>
+        <span class="group-count">${inStatus.length} ป้าย</span>
       </div>
-      <div class="plates-grid">
-        ${arr.map(p => {
-          const sc = STATUS_CLASS[p.status] || 's-none';
-          return `<div class="plate-card ${sc}" onclick="openPlate('${p.plateNo}')">
-            <div class="plate-num">${p.plateNo}</div>
-            <div class="plate-province">${p.province}</div>
-            <span class="plate-status">${p.status||'ไม่ระบุ'}</span>
-            ${p.remark?`<div style="font-size:9px;margin-top:3px;opacity:.65;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.remark}</div>`:''}
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
+      <div class="plates-grid">`;
+
+    // sort: KK first, then KY, then by plateNo
+    inStatus.sort((a,b) => {
+      const coA = companyOrder.indexOf(a.company) >= 0 ? companyOrder.indexOf(a.company) : 99;
+      const coB = companyOrder.indexOf(b.company) >= 0 ? companyOrder.indexOf(b.company) : 99;
+      if (coA !== coB) return coA - coB;
+      return a.plateNo.localeCompare(b.plateNo, 'th', {numeric:true});
+    });
+
+    inStatus.forEach(p => {
+      const sc = STATUS_CLASS[p.status] || 's-none';
+      html += `<div class="plate-card ${sc}" onclick="openPlate('${p.plateNo}')">
+        <div style="font-size:9px;font-weight:600;opacity:.6;margin-bottom:2px">${p.company}</div>
+        <div class="plate-num">${p.plateNo}</div>
+        <div class="plate-province">${p.province}</div>
+        ${p.remark?`<div style="font-size:9px;margin-top:3px;opacity:.65;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.remark}</div>`:''}
+      </div>`;
+    });
+    html += '</div></div>';
   });
 
-  if (!html) html = '<div class="empty">ไม่พบป้ายแดงที่ตรงกับเงื่อนไข</div>';
+  if (!filtered.length) html = '<div class="empty">ไม่พบป้ายแดงที่ตรงกับเงื่อนไข</div>';
   document.getElementById('mainContent').innerHTML = html;
 }
 

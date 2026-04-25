@@ -512,11 +512,12 @@ function renderDashboard() {
 
   // stat cards
   const cardDefs = [
-    {key:'Stock',  label:'Stock',    bg:'var(--stock-bg)',    color:'var(--stock)'},
-    {key:'SC',     label:'SC',       bg:'var(--sc-bg)',       color:'var(--sc)'},
-    {key:'Customer',label:'Customer',bg:'var(--customer-bg)', color:'var(--customer)'},
-    {key:'Repair', label:'Repair',   bg:'var(--repair-bg)',   color:'var(--repair)'},
-    {key:'Lose',   label:'Lose',     bg:'var(--lose-bg)',     color:'var(--lose)'},
+    {key:'Admin',   label:'Admin',    bg:'var(--admin-bg)',    color:'var(--admin)'},
+    {key:'Stock',   label:'Stock',    bg:'var(--stock-bg)',    color:'var(--stock)'},
+    {key:'SC',      label:'SC',       bg:'var(--sc-bg)',       color:'var(--sc)'},
+    {key:'Customer',label:'Customer', bg:'var(--customer-bg)', color:'var(--customer)'},
+    {key:'Repair',  label:'Repair',   bg:'var(--repair-bg)',   color:'var(--repair)'},
+    {key:'Lose',    label:'Lose',     bg:'var(--lose-bg)',     color:'var(--lose)'},
   ];
   document.getElementById('dashStatCards').innerHTML = cardDefs.map(c => `
     <div class="stat-card" style="background:${c.bg};border-color:${c.color}20;"
@@ -580,7 +581,12 @@ function renderDashboard() {
   // recent (last 5 withdraws)
   const recent = [...withdraws]
     .filter(w => w.dateWithdraw && !w.refundDate)
-    .slice(-5).reverse();
+    .sort((a, b) => {
+      const da = parseDateStr(a.dateWithdraw);
+      const db = parseDateStr(b.dateWithdraw);
+      return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+    })
+    .slice(0, 5);
   document.getElementById('dashRecentList').innerHTML = recent.length ? recent.map(w => {
     const plate = plates.find(p => p.plateNo === w.plateNo);
     const sc = STATUS_CLASS[plate?.status] || 's-none';
@@ -824,6 +830,9 @@ function render() {
 
   if (!filtered.length) html = '<div class="empty">ไม่พบป้ายแดงที่ตรงกับเงื่อนไข</div>';
   document.getElementById('mainContent').innerHTML = html;
+
+  // อัพเดท dashboard stat cards ทุกครั้งที่ข้อมูลเปลี่ยน
+  renderDashboard();
 }
 
 // ══════════════════════════════

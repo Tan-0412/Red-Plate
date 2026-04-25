@@ -78,15 +78,16 @@ body{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;backgroun
 .plates-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.75rem;}
 
 /* PLATE CARD */
-.plate-card{border-radius:12px;padding:.875rem 1rem;cursor:pointer;transition:all .2s;position:relative;border:2px solid transparent;user-select:none;}
+.plate-card{border-radius:12px;padding:.5rem .7rem;cursor:pointer;transition:all .2s;position:relative;border:2px solid transparent;user-select:none;}
 .plate-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
 .plate-card:active{transform:translateY(0);}
-.plate-top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
-.plate-company{font-size:12px;font-weight:700;opacity:.7;letter-spacing:.03em;}
-.plate-date{font-size:12px;opacity:.7;text-align:right;}
-.plate-num{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:40px;font-weight:700;line-height:1.1;margin-bottom:4px;letter-spacing:.03em;text-align:center;}
-.plate-province{font-size:13px;opacity:.6;margin-bottom:4px;letter-spacing:.02em;text-align:center;}
-.plate-sc{font-size:13px;opacity:.8;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;}
+.plate-top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:0;}
+.plate-company{font-size:13px;font-weight:700;opacity:.7;letter-spacing:.02em;}
+.plate-date{font-size:12px;opacity:.65;text-align:right;}
+.plate-num{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:36px;font-weight:700;line-height:1.0;margin:2px 0;letter-spacing:.02em;text-align:center;}
+.plate-province{font-size:14px;opacity:.55;margin-bottom:2px;letter-spacing:.02em;text-align:center;line-height:1.2;}
+.plate-sc{font-size:14px;font-weight:600;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;line-height:1.35;}
+.plate-remark{font-size:12px;margin-top:1px;opacity:.55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;}
 .plate-status{font-size:12px;font-weight:700;padding:3px 10px;border-radius:10px;display:inline-block;letter-spacing:.03em;}
 
 /* STATUS COLORS */
@@ -194,11 +195,27 @@ input[type=file]{display:none;}
 .loading-screen p{font-size:13px;color:var(--muted);}
 
 @media(max-width:640px){
-  .plates-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}
-  .filterbar{gap:8px;}
-  .statsbar{gap:.5rem;}
+  /* การ์ด — มือถือ 2 คอลัมน์ */
+  .plates-grid{grid-template-columns:repeat(2,1fr);gap:.5rem;}
+  .plate-num{font-size:30px;}
+  .plate-company,.plate-date{font-size:11px;}
+  .plate-province,.plate-sc{font-size:12px;}
+  /* filter bar */
+  .filterbar{gap:6px;padding:.5rem .75rem;}
+  .fbtn{font-size:14px;padding:5px 10px;}
+  .search-input{width:160px;font-size:15px;}
+  /* topbar */
+  .topbar-title{font-size:18px;}
+  .topbar-sub{font-size:13px;}
+  /* tabs */
+  .tab-btn{font-size:15px;padding:.6rem .9rem;}
+  /* form */
   .fld-row{grid-template-columns:1fr;}
   .status-opts{grid-template-columns:1fr 1fr;}
+  /* stats */
+  .statsbar{gap:.4rem;}
+  .stat-chip{font-size:14px;}
+  .stat-num{font-size:15px;}
 }
 </style>
 </head>
@@ -539,8 +556,9 @@ function render() {
         </div>
         <div class="plate-num">${p.plateCode}</div>
         <div class="plate-province">${p.province}</div>
-        ${scLine?`<div class="plate-sc">👤 ${p.status==='Customer'?'ลูกค้า: ':'SC: '}${scLine}</div>`:''}
-        ${p.remark?`<div style="font-size:12px;margin-top:2px;opacity:.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${p.remark}</div>`:''}
+        ${scName?`<div class="plate-sc">👤 SC: ${scName}</div>`:''}
+        ${custName?`<div class="plate-sc">🧑 ลูกค้า: ${custName}</div>`:''}
+        ${p.remark?`<div class="plate-remark">${p.remark}</div>`:''}
       </div>`;
     });
     html += '</div></div>';

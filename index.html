@@ -177,8 +177,7 @@ body{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;backgroun
 .btn-clear{padding:6px 14px;border-radius:20px;border:1.5px solid var(--gray-200);background:#fff;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:16px;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap;}
 .btn-clear:hover{border-color:var(--red);color:var(--red);background:var(--red-bg);}
 
-/* STATS INLINE */
-.statsbar-inline{display:flex;gap:5px;flex-wrap:wrap;}
+/* STATS CHIP */
 .stat-chip{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:16px;font-weight:600;border:1px solid;white-space:nowrap;}
 .stat-num{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:17px;font-weight:700;}
 
@@ -187,6 +186,19 @@ body{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;backgroun
 .group-title{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:17px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
 .group-line{flex:1;height:1px;background:var(--gray-200);}
 .group-count{font-size:15px;color:var(--muted);background:var(--gray-100);padding:2px 10px;border-radius:10px;}
+.statsbar-row{display:flex;gap:8px;padding:.5rem 1rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:#fff;border-bottom:1px solid var(--gray-200);}
+.statsbar-row::-webkit-scrollbar{display:none;}
+.statsbar-row .stat-chip{flex-shrink:0;}
+
+/* FILTER BAR — stack แนวตั้ง */
+.filterbar{background:#fff;border-bottom:1px solid var(--gray-200);padding:.5rem .75rem;display:flex;flex-direction:column;gap:.4rem;position:sticky;top:calc(56px + 48px + 44px);z-index:89;box-shadow:0 2px 4px rgba(0,0,0,.04);}
+.filter-row{display:flex;align-items:center;gap:.4rem;width:100%;}
+.filter-label{font-size:14px;font-weight:700;color:var(--muted);white-space:nowrap;min-width:44px;}
+.filter-chips{display:flex;gap:5px;flex-wrap:wrap;}
+.search-box{flex:1;position:relative;}
+.search-input{width:100%;height:36px;border:1.5px solid var(--gray-200);border-radius:20px;padding:0 12px 0 34px;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:16px;outline:none;transition:border .15s;box-sizing:border-box;}
+.search-input:focus{border-color:var(--red);}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;}
 input[type=file]{display:none;}
 
 /* LOADING SCREEN */
@@ -197,25 +209,25 @@ input[type=file]{display:none;}
 @media(max-width:640px){
   /* การ์ด — มือถือ 2 คอลัมน์ */
   .plates-grid{grid-template-columns:repeat(2,1fr);gap:.5rem;}
-  .plate-num{font-size:30px;}
-  .plate-company,.plate-date{font-size:11px;}
+  .plate-num{font-size:28px;}
+  .plate-company,.plate-date{font-size:12px;}
   .plate-province,.plate-sc{font-size:12px;}
-  /* filter bar */
-  .filterbar{gap:6px;padding:.5rem .75rem;}
-  .fbtn{font-size:14px;padding:5px 10px;}
-  .search-input{width:160px;font-size:15px;}
   /* topbar */
-  .topbar-title{font-size:18px;}
-  .topbar-sub{font-size:13px;}
-  /* tabs */
-  .tab-btn{font-size:15px;padding:.6rem .9rem;}
+  .topbar{padding:0 .75rem;}
+  .topbar-title{font-size:17px;}
+  .topbar-sub{font-size:12px;}
+  /* tabs — เต็มความกว้าง */
+  .tab-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .tab-btn{font-size:15px;padding:.6rem .875rem;white-space:nowrap;}
+  /* filter — compact */
+  .fbtn{font-size:14px;padding:5px 10px;}
+  .filter-label{font-size:13px;min-width:40px;}
+  /* stats chip */
+  .stat-chip{font-size:14px;padding:4px 10px;}
+  .stat-num{font-size:15px;}
   /* form */
   .fld-row{grid-template-columns:1fr;}
   .status-opts{grid-template-columns:1fr 1fr;}
-  /* stats */
-  .statsbar{gap:.4rem;}
-  .stat-chip{font-size:14px;}
-  .stat-num{font-size:15px;}
 }
 </style>
 </head>
@@ -256,9 +268,12 @@ input[type=file]{display:none;}
     </div>
     <div class="topbar-right">
       <div class="sync-badge"><span class="dot" id="syncDot"></span><span id="syncTxt">กำลังโหลด...</span></div>
-      <button class="btn btn-s" style="height:30px;font-size:12px" onclick="loadData()">↻ รีโหลด</button>
+      <button class="btn btn-s" style="height:34px;font-size:14px;padding:0 12px;" onclick="loadData()">↻ รีโหลด</button>
     </div>
   </div>
+
+  <!-- STATS BAR — แยกออกมาเป็นแถวเดียว เลื่อนได้แนวนอน -->
+  <div class="statsbar-row" id="statsBar"></div>
 
   <!-- TABS -->
   <div class="tab-bar">
@@ -268,28 +283,34 @@ input[type=file]{display:none;}
     <button class="tab-btn" onclick="setTab('inactive',this)" id="tab-inactive">
       🔒 ไม่ได้ใช้งาน <span class="tab-count" id="tc-inactive">0</span>
     </button>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 .5rem">
-      <div class="statsbar-inline" id="statsBar"></div>
-    </div>
   </div>
 
-  <!-- FILTER BAR -->
+  <!-- FILTER BAR — แยกบริษัท / สถานะ / ค้นหา แต่ละแถว -->
   <div class="filterbar">
-    <div class="filter-group">
+    <!-- row 1: บริษัท -->
+    <div class="filter-row">
       <span class="filter-label">บริษัท</span>
-      <button class="fbtn on" id="fb-co-ALL" onclick="setFilter('company','ALL',this)">ทั้งหมด</button>
-      <button class="fbtn" id="fb-co-KK" onclick="setFilter('company','KK',this)">KK</button>
-      <button class="fbtn" id="fb-co-KY" onclick="setFilter('company','KY',this)">KY</button>
+      <div class="filter-chips">
+        <button class="fbtn on" id="fb-co-ALL" onclick="setFilter('company','ALL',this)">ทั้งหมด</button>
+        <button class="fbtn" id="fb-co-KK" onclick="setFilter('company','KK',this)">KK</button>
+        <button class="fbtn" id="fb-co-KY" onclick="setFilter('company','KY',this)">KY</button>
+      </div>
     </div>
-    <div class="filter-group" id="statusFilterGroup">
+    <!-- row 2: สถานะ -->
+    <div class="filter-row" id="statusFilterGroup">
       <span class="filter-label">สถานะ</span>
-      <button class="fbtn on" id="fb-st-ALL" onclick="setFilter('status','ALL',this)">ทั้งหมด</button>
+      <div class="filter-chips">
+        <button class="fbtn on" id="fb-st-ALL" onclick="setFilter('status','ALL',this)">ทั้งหมด</button>
+      </div>
     </div>
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input class="search-input" type="text" placeholder="ค้นหาทะเบียน..." id="searchInput" oninput="render()">
+    <!-- row 3: ค้นหา + ล้าง -->
+    <div class="filter-row">
+      <div class="search-box" style="flex:1;">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" placeholder="ค้นหาทะเบียน..." id="searchInput" oninput="render()">
+      </div>
+      <button class="btn-clear" onclick="clearFilters()">✕ ล้าง</button>
     </div>
-    <button class="btn-clear" onclick="clearFilters()">✕ ล้างตัวกรอง</button>
   </div>
 
   <div id="mainContent"></div>
@@ -445,7 +466,7 @@ function setTab(tab, btn) {
 
 function setFilter(type, val, btn) {
   filters[type] = val;
-  btn.closest('.filter-group').querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
+  btn.closest('.filter-row').querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
   render();
 }
@@ -464,8 +485,10 @@ function updateStatusFilters() {
   if (!grp) return;
   const statuses = STATUS_GROUPS[currentTab] || [];
   grp.innerHTML = `<span class="filter-label">สถานะ</span>
-    <button class="fbtn on" id="fb-st-ALL" onclick="setFilter('status','ALL',this)">ทั้งหมด</button>
-    ${statuses.map(s=>`<button class="fbtn" id="fb-st-${s.key}" onclick="setFilter('status','${s.key}',this)">${s.label}</button>`).join('')}`;
+    <div class="filter-chips">
+      <button class="fbtn on" id="fb-st-ALL" onclick="setFilter('status','ALL',this)">ทั้งหมด</button>
+      ${statuses.map(s=>`<button class="fbtn" id="fb-st-${s.key}" onclick="setFilter('status','${s.key}',this)">${s.label}</button>`).join('')}
+    </div>`;
 }
 
 // ══════════════════════════════
@@ -552,7 +575,7 @@ function render() {
       html += `<div class="plate-card ${sc}" onclick="openPlate('${p.plateNo}')">
         <div class="plate-top-row">
           <span class="plate-company">${p.company}</span>
-          <span class="plate-date">${dateLabel?'📅 '+dateLabel:''}</span>
+          <span class="plate-date">${dateLabel||''}</span>
         </div>
         <div class="plate-num">${p.plateCode}</div>
         <div class="plate-province">${p.province}</div>

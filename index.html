@@ -512,8 +512,8 @@ function renderDashboard() {
 
   // stat cards
   const cardDefs = [
-    {key:'Admin',   label:'Admin',    bg:'var(--admin-bg)',    color:'var(--admin)'},
     {key:'Stock',   label:'Stock',    bg:'var(--stock-bg)',    color:'var(--stock)'},
+    {key:'Admin',   label:'Admin',    bg:'var(--admin-bg)',    color:'var(--admin)'},
     {key:'SC',      label:'SC',       bg:'var(--sc-bg)',       color:'var(--sc)'},
     {key:'Customer',label:'Customer', bg:'var(--customer-bg)', color:'var(--customer)'},
     {key:'Repair',  label:'Repair',   bg:'var(--repair-bg)',   color:'var(--repair)'},
@@ -770,7 +770,7 @@ const STATUS_CLASS = {
 function render() {
   const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
   // รวมทุกสถานะ เรียงตาม active ก่อน inactive
-  const ALL_STATUS_ORDER = ['Admin','SC','Customer','Stock','Repair','Lose'];
+  const ALL_STATUS_ORDER = ['Stock','Admin','SC','Customer','Repair','Lose'];
 
   // filter
   let filtered = plates.filter(p => {

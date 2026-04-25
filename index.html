@@ -201,33 +201,105 @@ body{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;backgroun
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;}
 input[type=file]{display:none;}
 
-/* LOADING SCREEN */
-.loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:12px;}
-.sp-lg{width:36px;height:36px;border:3px solid var(--gray-200);border-top-color:var(--red);border-radius:50%;animation:rot .8s linear infinite;}
-.loading-screen p{font-size:13px;color:var(--muted);}
+/* ══════════════════════════════
+   BOTTOM NAV
+══════════════════════════════ */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:60px;background:#fff;border-top:1px solid var(--gray-200);display:flex;z-index:200;box-shadow:0 -4px 16px rgba(0,0,0,.08);}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:transparent;cursor:pointer;color:var(--muted);font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:12px;font-weight:600;transition:color .15s;padding:0;}
+.bnav-btn .bnav-icon{font-size:22px;line-height:1;}
+.bnav-btn.on{color:var(--red);}
+.bnav-btn.on .bnav-icon{filter:drop-shadow(0 2px 4px rgba(192,57,43,.3));}
+/* กันไม่ให้ content ถูก bottom-nav บัง */
+#app{padding-bottom:60px;}
+
+/* ══════════════════════════════
+   DASHBOARD
+══════════════════════════════ */
+#dashPage{display:none;padding:0 0 1rem;}
+#dashPage.active{display:block;}
+#platePage{display:none;}
+#platePage.active{display:block;}
+#searchPage{display:none;padding:1rem;}
+#searchPage.active{display:block;}
+
+/* stat cards grid */
+.dash-section{padding:.75rem 1rem 0;}
+.dash-title{font-size:15px;font-weight:700;color:var(--muted);margin-bottom:.5rem;letter-spacing:.04em;text-transform:uppercase;}
+.stat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.25rem;}
+.stat-card{border-radius:14px;padding:.75rem .5rem;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent;}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.stat-card:active{transform:scale(.97);}
+.stat-card .sc-num{font-size:32px;font-weight:700;line-height:1;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;}
+.stat-card .sc-label{font-size:13px;font-weight:600;margin-top:3px;opacity:.85;}
+
+/* overdue list */
+.overdue-list{display:flex;flex-direction:column;gap:.4rem;}
+.overdue-item{background:#fff;border-radius:12px;padding:.6rem .875rem;display:flex;align-items:center;gap:.75rem;border-left:4px solid;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .15s;}
+.overdue-item:hover{box-shadow:var(--shadow-lg);}
+.overdue-item.sc-item{border-color:var(--sc);}
+.overdue-item.cust-item{border-color:var(--customer);}
+.overdue-icon{font-size:22px;flex-shrink:0;}
+.overdue-info{flex:1;min-width:0;}
+.overdue-plate{font-size:20px;font-weight:700;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;line-height:1.1;}
+.overdue-detail{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.overdue-days{flex-shrink:0;text-align:right;}
+.overdue-days .days-num{font-size:22px;font-weight:700;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;line-height:1;}
+.overdue-days .days-label{font-size:11px;color:var(--muted);}
+
+/* recent list */
+.recent-list{display:flex;flex-direction:column;gap:.4rem;}
+.recent-item{background:#fff;border-radius:12px;padding:.5rem .875rem;display:flex;align-items:center;gap:.75rem;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .15s;}
+.recent-item:hover{box-shadow:var(--shadow-lg);}
+.recent-plate{font-size:20px;font-weight:700;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;min-width:90px;}
+.recent-info{flex:1;min-width:0;}
+.recent-detail{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.recent-badge{flex-shrink:0;}
+
+/* shortcut buttons */
+.shortcut-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;}
+.sc-btn{border-radius:14px;padding:.875rem .5rem;text-align:center;border:none;cursor:pointer;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-weight:700;font-size:14px;transition:transform .15s,box-shadow .15s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.sc-btn .sc-btn-icon{font-size:24px;}
+.sc-btn:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.sc-btn:active{transform:scale(.97);}
+
+/* search page */
+.search-page-box{position:relative;margin-bottom:1rem;}
+.search-page-input{width:100%;height:44px;border:2px solid var(--gray-200);border-radius:22px;padding:0 16px 0 44px;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:18px;outline:none;transition:border .15s;box-sizing:border-box;background:#fff;}
+.search-page-input:focus{border-color:var(--red);}
+.search-page-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--muted);}
+.search-results{display:flex;flex-direction:column;gap:.4rem;}
+.search-result-item{background:#fff;border-radius:12px;padding:.6rem 1rem;display:flex;align-items:center;gap:.75rem;box-shadow:var(--shadow);cursor:pointer;border:2px solid transparent;transition:all .15s;}
+.search-result-item:hover{border-color:var(--red-light);box-shadow:var(--shadow-lg);}
+.sr-plate{font-size:22px;font-weight:700;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;min-width:100px;}
+.sr-info{flex:1;min-width:0;}
+.sr-detail{font-size:13px;color:var(--muted);}
+
 
 @media(max-width:640px){
-  /* การ์ด — มือถือ 2 คอลัมน์ */
   .plates-grid{grid-template-columns:repeat(2,1fr);gap:.5rem;}
   .plate-num{font-size:28px;}
   .plate-company,.plate-date{font-size:12px;}
   .plate-province,.plate-sc{font-size:12px;}
-  /* topbar */
   .topbar{padding:0 .75rem;}
   .topbar-title{font-size:17px;}
   .topbar-sub{font-size:12px;}
-  /* tabs — เต็มความกว้าง */
   .tab-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
   .tab-btn{font-size:15px;padding:.6rem .875rem;white-space:nowrap;}
-  /* filter — compact */
   .fbtn{font-size:14px;padding:5px 10px;}
   .filter-label{font-size:13px;min-width:40px;}
-  /* stats chip */
   .stat-chip{font-size:14px;padding:4px 10px;}
   .stat-num{font-size:15px;}
-  /* form */
   .fld-row{grid-template-columns:1fr;}
   .status-opts{grid-template-columns:1fr 1fr;}
+}
+@media(min-width:641px){
+  .stat-cards{grid-template-columns:repeat(5,1fr);}
+  .shortcut-grid{grid-template-columns:repeat(5,1fr);}
+  .dash-section{padding:.875rem 1.5rem 0;}
+  /* desktop: bottom nav เป็น side nav */
+  .bottom-nav{top:56px;bottom:auto;height:auto;width:68px;right:auto;flex-direction:column;border-top:none;border-right:1px solid var(--gray-200);box-shadow:2px 0 8px rgba(0,0,0,.06);}
+  .bnav-btn{padding:.875rem 0;font-size:11px;}
+  #app{padding-bottom:0;padding-left:68px;}
 }
 </style>
 </head>
@@ -262,7 +334,7 @@ input[type=file]{display:none;}
     <div class="topbar-left">
       <span class="topbar-logo">🚗</span>
       <div>
-        <div class="topbar-title">ระบบจัดการป้ายแดง</div>
+        <div class="topbar-title" id="topbarTitle">ระบบจัดการป้ายแดง</div>
         <div class="topbar-sub">สาขา สุวินทวงศ์</div>
       </div>
     </div>
@@ -272,48 +344,118 @@ input[type=file]{display:none;}
     </div>
   </div>
 
-  <!-- STATS BAR — แยกออกมาเป็นแถวเดียว เลื่อนได้แนวนอน -->
-  <div class="statsbar-row" id="statsBar"></div>
+  <!-- BOTTOM / SIDE NAV -->
+  <nav class="bottom-nav">
+    <button class="bnav-btn on" id="bnav-dash" onclick="setPage('dash')">
+      <span class="bnav-icon">🏠</span>หน้าหลัก
+    </button>
+    <button class="bnav-btn" id="bnav-plates" onclick="setPage('plates')">
+      <span class="bnav-icon">🚗</span>ป้าย
+    </button>
+    <button class="bnav-btn" id="bnav-search" onclick="setPage('search')">
+      <span class="bnav-icon">🔍</span>ค้นหา
+    </button>
+  </nav>
 
-  <!-- TABS -->
-  <div class="tab-bar">
-    <button class="tab-btn on" onclick="setTab('active',this)" id="tab-active">
-      🟢 กำลังใช้งาน <span class="tab-count" id="tc-active">0</span>
-    </button>
-    <button class="tab-btn" onclick="setTab('inactive',this)" id="tab-inactive">
-      🔒 ไม่ได้ใช้งาน <span class="tab-count" id="tc-inactive">0</span>
-    </button>
+  <!-- ════ DASHBOARD PAGE ════ -->
+  <div id="dashPage" class="active">
+
+    <!-- Stat Cards -->
+    <div class="dash-section">
+      <div class="dash-title">ภาพรวมป้ายแดง</div>
+      <div class="stat-cards" id="dashStatCards"></div>
+    </div>
+
+    <!-- Overdue -->
+    <div class="dash-section" id="dashOverdueSection">
+      <div class="dash-title" style="color:var(--red);">⚠️ เกินกำหนด</div>
+      <div class="overdue-list" id="dashOverdueList"></div>
+    </div>
+
+    <!-- Recent -->
+    <div class="dash-section">
+      <div class="dash-title">🕐 เพิ่งเบิกออกไป</div>
+      <div class="recent-list" id="dashRecentList"></div>
+    </div>
+
+    <!-- Shortcuts -->
+    <div class="dash-section" style="padding-bottom:1rem;">
+      <div class="dash-title">⚡ ทำอะไรต่อ?</div>
+      <div class="shortcut-grid">
+        <button class="sc-btn" style="background:var(--stock-bg);color:var(--stock);" onclick="openAddPlate()">
+          <span class="sc-btn-icon">➕</span>เพิ่มป้าย
+        </button>
+        <button class="sc-btn" style="background:var(--sc-bg);color:var(--sc);" onclick="setPage('plates');setTab('active',document.getElementById('tab-active'))">
+          <span class="sc-btn-icon">📋</span>กำลังใช้
+        </button>
+        <button class="sc-btn" style="background:var(--customer-bg);color:var(--customer);" onclick="setPage('plates');setFilter('status','Customer',document.getElementById('fb-st-Customer'))">
+          <span class="sc-btn-icon">👤</span>Customer
+        </button>
+        <button class="sc-btn" style="background:#E3F2FD;color:#1565C0;" onclick="setPage('plates');setTab('inactive',document.getElementById('tab-inactive'))">
+          <span class="sc-btn-icon">📦</span>Stock
+        </button>
+        <button class="sc-btn" style="background:var(--gray-100);color:var(--gray-700);" onclick="setPage('search')">
+          <span class="sc-btn-icon">🔍</span>ค้นหา
+        </button>
+      </div>
+    </div>
   </div>
 
-  <!-- FILTER BAR — แยกบริษัท / สถานะ / ค้นหา แต่ละแถว -->
-  <div class="filterbar">
-    <!-- row 1: บริษัท -->
-    <div class="filter-row">
-      <span class="filter-label">บริษัท</span>
-      <div class="filter-chips">
-        <button class="fbtn on" id="fb-co-ALL" onclick="setFilter('company','ALL',this)">ทั้งหมด</button>
-        <button class="fbtn" id="fb-co-KK" onclick="setFilter('company','KK',this)">KK</button>
-        <button class="fbtn" id="fb-co-KY" onclick="setFilter('company','KY',this)">KY</button>
+  <!-- ════ PLATES PAGE ════ -->
+  <div id="platePage">
+
+    <!-- STATS ROW -->
+    <div class="statsbar-row" id="statsBar"></div>
+
+    <!-- TABS -->
+    <div class="tab-bar">
+      <button class="tab-btn on" onclick="setTab('active',this)" id="tab-active">
+        🟢 กำลังใช้งาน <span class="tab-count" id="tc-active">0</span>
+      </button>
+      <button class="tab-btn" onclick="setTab('inactive',this)" id="tab-inactive">
+        🔒 ไม่ได้ใช้งาน <span class="tab-count" id="tc-inactive">0</span>
+      </button>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filterbar">
+      <div class="filter-row">
+        <span class="filter-label">บริษัท</span>
+        <div class="filter-chips">
+          <button class="fbtn on" id="fb-co-ALL" onclick="setFilter('company','ALL',this)">ทั้งหมด</button>
+          <button class="fbtn" id="fb-co-KK" onclick="setFilter('company','KK',this)">KK</button>
+          <button class="fbtn" id="fb-co-KY" onclick="setFilter('company','KY',this)">KY</button>
+        </div>
+      </div>
+      <div class="filter-row" id="statusFilterGroup">
+        <span class="filter-label">สถานะ</span>
+        <div class="filter-chips">
+          <button class="fbtn on" id="fb-st-ALL" onclick="setFilter('status','ALL',this)">ทั้งหมด</button>
+        </div>
+      </div>
+      <div class="filter-row">
+        <div class="search-box" style="flex:1;">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" type="text" placeholder="ค้นหาทะเบียน..." id="searchInput" oninput="render()">
+        </div>
+        <button class="btn-clear" onclick="clearFilters()">✕ ล้าง</button>
       </div>
     </div>
-    <!-- row 2: สถานะ -->
-    <div class="filter-row" id="statusFilterGroup">
-      <span class="filter-label">สถานะ</span>
-      <div class="filter-chips">
-        <button class="fbtn on" id="fb-st-ALL" onclick="setFilter('status','ALL',this)">ทั้งหมด</button>
-      </div>
+
+    <div id="mainContent"></div>
+  </div>
+
+  <!-- ════ SEARCH PAGE ════ -->
+  <div id="searchPage">
+    <div class="search-page-box">
+      <span class="search-page-icon">🔍</span>
+      <input class="search-page-input" type="text" placeholder="พิมพ์เลขทะเบียน..." id="searchPageInput" oninput="renderSearchPage()">
     </div>
-    <!-- row 3: ค้นหา + ล้าง -->
-    <div class="filter-row">
-      <div class="search-box" style="flex:1;">
-        <span class="search-icon">🔍</span>
-        <input class="search-input" type="text" placeholder="ค้นหาทะเบียน..." id="searchInput" oninput="render()">
-      </div>
-      <button class="btn-clear" onclick="clearFilters()">✕ ล้าง</button>
+    <div class="search-results" id="searchPageResults">
+      <div style="text-align:center;padding:2rem;color:var(--muted);font-size:16px;">พิมพ์เพื่อค้นหาป้ายทะเบียน</div>
     </div>
   </div>
 
-  <div id="mainContent"></div>
 </div>
 
 <!-- MODAL -->
@@ -346,8 +488,9 @@ const ADMIN_PW = '111483';
 let plates = [];
 let withdraws = [];
 let filters = { company: 'ALL', status: 'ALL' };
-let currentTab = 'active'; // 'active' | 'inactive'
+let currentTab = 'active';
 let currentPlate = null;
+let currentPage = 'dash'; // 'dash' | 'plates' | 'search'
 
 const ACTIVE_STATUSES   = ['Admin','SC','Customer'];
 const INACTIVE_STATUSES = ['Stock','Repair','Lose'];
@@ -355,6 +498,172 @@ const STATUS_GROUPS = {
   active:   [{key:'Admin',label:'Admin'},{key:'SC',label:'SC'},{key:'Customer',label:'Customer'}],
   inactive: [{key:'Stock',label:'Stock'},{key:'Repair',label:'Repair'},{key:'Lose',label:'Lose'}]
 };
+
+// ══════════════════════════════
+//  PAGE NAVIGATION
+// ══════════════════════════════
+function setPage(page) {
+  currentPage = page;
+  // toggle pages
+  document.getElementById('dashPage').classList.toggle('active', page === 'dash');
+  document.getElementById('platePage').classList.toggle('active', page === 'plates');
+  document.getElementById('searchPage').classList.toggle('active', page === 'search');
+  // toggle nav buttons
+  ['dash','plates','search'].forEach(p => {
+    document.getElementById('bnav-'+p)?.classList.toggle('on', p === page);
+  });
+  // topbar title
+  const titles = {dash:'หน้าหลัก', plates:'รายการป้ายแดง', search:'ค้นหาป้าย'};
+  document.getElementById('topbarTitle').textContent = titles[page] || 'ระบบจัดการป้ายแดง';
+
+  if (page === 'dash') renderDashboard();
+  if (page === 'search') document.getElementById('searchPageInput')?.focus();
+}
+
+// ══════════════════════════════
+//  DASHBOARD RENDER
+// ══════════════════════════════
+function renderDashboard() {
+  if (!plates.length) return;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // count per status
+  const counts = {};
+  plates.forEach(p => { counts[p.status] = (counts[p.status]||0) + 1; });
+  const total = plates.length;
+
+  // stat cards
+  const cardDefs = [
+    {key:'Stock',  label:'Stock',    bg:'var(--stock-bg)',    color:'var(--stock)'},
+    {key:'SC',     label:'SC',       bg:'var(--sc-bg)',       color:'var(--sc)'},
+    {key:'Customer',label:'Customer',bg:'var(--customer-bg)', color:'var(--customer)'},
+    {key:'Repair', label:'Repair',   bg:'var(--repair-bg)',   color:'var(--repair)'},
+    {key:'Lose',   label:'Lose',     bg:'var(--lose-bg)',     color:'var(--lose)'},
+  ];
+  document.getElementById('dashStatCards').innerHTML = cardDefs.map(c => `
+    <div class="stat-card" style="background:${c.bg};border-color:${c.color}20;"
+         onclick="setPage('plates');setTimeout(()=>filterByStatus('${c.key}'),50)">
+      <div class="sc-num" style="color:${c.color}">${counts[c.key]||0}</div>
+      <div class="sc-label" style="color:${c.color}">${c.label}</div>
+    </div>`).join('');
+
+  // overdue
+  const scOverdue = [], custOverdue = [];
+  plates.forEach(p => {
+    const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo && !w.refundDate);
+    if (!lwd) return;
+    if (p.status === 'SC' && lwd.dateWithdraw) {
+      const d = parseDateStr(lwd.dateWithdraw); if (!d) return;
+      const days = Math.floor((today - d) / 86400000);
+      if (days >= 3) scOverdue.push({...p, days, sc: lwd.withdrawBy, dateWithdraw: lwd.dateWithdraw});
+    }
+    if (p.status === 'Customer' && lwd.dueDate) {
+      const d = parseDateStr(lwd.dueDate); if (!d) return;
+      const days = Math.floor((today - d) / 86400000);
+      if (days > 0) custOverdue.push({...p, days, customerName: lwd.customerName, sc: lwd.withdrawBy, dueDate: lwd.dueDate});
+    }
+  });
+  scOverdue.sort((a,b)=>b.days-a.days);
+  custOverdue.sort((a,b)=>b.days-a.days);
+
+  const sec = document.getElementById('dashOverdueSection');
+  const list = document.getElementById('dashOverdueList');
+  const all = [...scOverdue, ...custOverdue];
+  if (all.length === 0) {
+    sec.style.display = 'none';
+  } else {
+    sec.style.display = '';
+    list.innerHTML = [
+      ...scOverdue.map(p => `
+        <div class="overdue-item sc-item" onclick="openPlate('${p.plateNo}')">
+          <div class="overdue-info">
+            <div class="overdue-plate" style="color:var(--sc)">${p.plateCode}</div>
+            <div class="overdue-detail">SC: ${p.sc||'-'} · เบิก ${p.dateWithdraw}</div>
+          </div>
+          <div class="overdue-days">
+            <div class="days-num" style="color:var(--sc)">${p.days}</div>
+            <div class="days-label">วัน</div>
+          </div>
+        </div>`),
+      ...custOverdue.map(p => `
+        <div class="overdue-item cust-item" onclick="openPlate('${p.plateNo}')">
+          <div class="overdue-info">
+            <div class="overdue-plate" style="color:var(--customer)">${p.plateCode}</div>
+            <div class="overdue-detail">${p.customerName||'-'} · ครบ ${p.dueDate}</div>
+          </div>
+          <div class="overdue-days">
+            <div class="days-num" style="color:var(--customer)">${p.days}</div>
+            <div class="days-label">วัน</div>
+          </div>
+        </div>`)
+    ].join('');
+  }
+
+  // recent (last 5 withdraws)
+  const recent = [...withdraws]
+    .filter(w => w.dateWithdraw && !w.refundDate)
+    .slice(-5).reverse();
+  document.getElementById('dashRecentList').innerHTML = recent.length ? recent.map(w => {
+    const plate = plates.find(p => p.plateNo === w.plateNo);
+    const sc = STATUS_CLASS[plate?.status] || 's-none';
+    return `<div class="recent-item" onclick="openPlate('${w.plateNo}')">
+      <div class="recent-plate ${sc}" style="border-radius:8px;padding:4px 8px;">${plate?.plateCode||w.plateNo}</div>
+      <div class="recent-info">
+        <div style="font-size:15px;font-weight:700;">${plate?.status||'?'}</div>
+        <div class="recent-detail">${w.withdrawBy||'-'} · ${w.dateWithdraw}</div>
+      </div>
+    </div>`;
+  }).join('') : '<div style="color:var(--muted);font-size:14px;padding:.5rem 0;">ไม่มีข้อมูล</div>';
+}
+
+function filterByStatus(status) {
+  // switch tab ตาม status
+  const isActive = ACTIVE_STATUSES.includes(status);
+  const tabBtn = document.getElementById(isActive ? 'tab-active' : 'tab-inactive');
+  setTab(isActive ? 'active' : 'inactive', tabBtn);
+  // set filter
+  filters.status = status;
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
+  document.getElementById('fb-co-ALL')?.classList.add('on');
+  const stBtn = document.getElementById('fb-st-'+status);
+  if (stBtn) stBtn.classList.add('on');
+  else document.getElementById('fb-st-ALL')?.classList.add('on');
+  render();
+}
+
+function parseDateStr(str) {
+  if (!str) return null;
+  if (str instanceof Date) return str;
+  const m = str.toString().match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if (m) { const d = new Date(+m[3], +m[2]-1, +m[1]); return isNaN(d)?null:d; }
+  const d = new Date(str); return isNaN(d)?null:d;
+}
+
+// ══════════════════════════════
+//  SEARCH PAGE
+// ══════════════════════════════
+function renderSearchPage() {
+  const q = (document.getElementById('searchPageInput')?.value||'').toLowerCase().trim();
+  const res = document.getElementById('searchPageResults');
+  if (!q) { res.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:16px;">พิมพ์เพื่อค้นหาป้ายทะเบียน</div>'; return; }
+  const found = plates.filter(p =>
+    p.plateNo.toLowerCase().includes(q) || p.plateCode.toLowerCase().includes(q)
+  );
+  if (!found.length) { res.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:16px;">ไม่พบป้ายที่ตรงกัน</div>'; return; }
+  const sc_class = {Admin:'s-admin',SC:'s-sc',Customer:'s-customer',Stock:'s-stock',Repair:'s-repair',Lose:'s-lose'};
+  res.innerHTML = found.slice(0,20).map(p => {
+    const lwd = [...withdraws].reverse().find(w=>w.plateNo===p.plateNo);
+    return `<div class="search-result-item" onclick="openPlate('${p.plateNo}')">
+      <div class="sr-plate" style="color:var(--${p.status?.toLowerCase()||'muted'})">${p.plateCode}</div>
+      <div class="sr-info">
+        <div style="font-size:15px;font-weight:700;">${p.province||''}</div>
+        <div class="sr-detail">${p.status} · ${lwd?.withdrawBy||p.company||''}</div>
+      </div>
+      <span class="plate-status ${sc_class[p.status]||'s-none'}" style="font-size:12px;padding:3px 8px;">${p.status||'?'}</span>
+    </div>`;
+  }).join('');
+}
 
 // ══════════════════════════════
 //  LOGIN
@@ -403,6 +712,7 @@ async function loadData() {
     withdraws = parseWithdraw(wdData.values || []);
     updateStatusFilters();
     render();
+    renderDashboard();
     setSyncState('ok', 'อัปเดตแล้ว ' + nowTime());
     toast('โหลดข้อมูลสำเร็จ ✓', 'ok');
   } catch(e) {

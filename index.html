@@ -404,42 +404,19 @@ input[type=file]{display:none;}
   <!-- ════ PLATES PAGE ════ -->
   <div id="platePage">
 
-    <!-- STATS ROW -->
-    <div class="statsbar-row" id="statsBar"></div>
-
-    <!-- TABS -->
-    <div class="tab-bar">
-      <button class="tab-btn on" onclick="setTab('active',this)" id="tab-active">
-        🟢 กำลังใช้งาน <span class="tab-count" id="tc-active">0</span>
-      </button>
-      <button class="tab-btn" onclick="setTab('inactive',this)" id="tab-inactive">
-        🔒 ไม่ได้ใช้งาน <span class="tab-count" id="tc-inactive">0</span>
-      </button>
-    </div>
-
-    <!-- FILTER BAR -->
-    <div class="filterbar">
-      <div class="filter-row">
-        <span class="filter-label">บริษัท</span>
-        <div class="filter-chips">
-          <button class="fbtn on" id="fb-co-ALL" onclick="setFilter('company','ALL',this)">ทั้งหมด</button>
-          <button class="fbtn" id="fb-co-KK" onclick="setFilter('company','KK',this)">KK</button>
-          <button class="fbtn" id="fb-co-KY" onclick="setFilter('company','KY',this)">KY</button>
-        </div>
+    <!-- FILTER BAR — บรรทัดเดียว -->
+    <div class="filterbar" style="flex-direction:row;flex-wrap:wrap;align-items:center;gap:.5rem;padding:.5rem .75rem;">
+      <span class="filter-label">บริษัท</span>
+      <div class="filter-chips">
+        <button class="fbtn on" id="fb-co-ALL" onclick="setFilter('company','ALL',this)">ทั้งหมด</button>
+        <button class="fbtn" id="fb-co-KK" onclick="setFilter('company','KK',this)">KK</button>
+        <button class="fbtn" id="fb-co-KY" onclick="setFilter('company','KY',this)">KY</button>
       </div>
-      <div class="filter-row" id="statusFilterGroup">
-        <span class="filter-label">สถานะ</span>
-        <div class="filter-chips">
-          <button class="fbtn on" id="fb-st-ALL" onclick="setFilter('status','ALL',this)">ทั้งหมด</button>
-        </div>
+      <div class="search-box" style="flex:1;min-width:140px;">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" placeholder="ค้นหาทะเบียน..." id="searchInput" oninput="render()">
       </div>
-      <div class="filter-row">
-        <div class="search-box" style="flex:1;">
-          <span class="search-icon">🔍</span>
-          <input class="search-input" type="text" placeholder="ค้นหาทะเบียน..." id="searchInput" oninput="render()">
-        </div>
-        <button class="btn-clear" onclick="clearFilters()">✕ ล้าง</button>
-      </div>
+      <button class="btn-clear" onclick="clearFilters()">✕ ล้าง</button>
     </div>
 
     <div id="mainContent"></div>
@@ -618,17 +595,11 @@ function renderDashboard() {
 }
 
 function filterByStatus(status) {
-  // switch tab ตาม status
-  const isActive = ACTIVE_STATUSES.includes(status);
-  const tabBtn = document.getElementById(isActive ? 'tab-active' : 'tab-inactive');
-  setTab(isActive ? 'active' : 'inactive', tabBtn);
-  // set filter
+  setPage('plates');
   filters.status = status;
+  filters.company = 'ALL';
   document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
   document.getElementById('fb-co-ALL')?.classList.add('on');
-  const stBtn = document.getElementById('fb-st-'+status);
-  if (stBtn) stBtn.classList.add('on');
-  else document.getElementById('fb-st-ALL')?.classList.add('on');
   render();
 }
 
@@ -710,7 +681,6 @@ async function loadData() {
     ]);
     plates = parseStock(stockData.values || []);
     withdraws = parseWithdraw(wdData.values || []);
-    updateStatusFilters();
     render();
     renderDashboard();
     setSyncState('ok', 'อัปเดตแล้ว ' + nowTime());
@@ -765,18 +735,11 @@ function parseWithdraw(rows) {
 // ══════════════════════════════
 //  FILTERS
 // ══════════════════════════════
-function setTab(tab, btn) {
-  currentTab = tab;
-  filters.status = 'ALL';
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  updateStatusFilters();
-  render();
-}
 
 function setFilter(type, val, btn) {
   filters[type] = val;
-  btn.closest('.filter-row').querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
+  // reset ปุ่มกลุ่มเดียวกัน
+  btn.closest('.filter-chips')?.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
   render();
 }
@@ -786,20 +749,9 @@ function clearFilters() {
   document.getElementById('searchInput').value = '';
   document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
   document.getElementById('fb-co-ALL')?.classList.add('on');
-  document.getElementById('fb-st-ALL')?.classList.add('on');
   render();
 }
 
-function updateStatusFilters() {
-  const grp = document.getElementById('statusFilterGroup');
-  if (!grp) return;
-  const statuses = STATUS_GROUPS[currentTab] || [];
-  grp.innerHTML = `<span class="filter-label">สถานะ</span>
-    <div class="filter-chips">
-      <button class="fbtn on" id="fb-st-ALL" onclick="setFilter('status','ALL',this)">ทั้งหมด</button>
-      ${statuses.map(s=>`<button class="fbtn" id="fb-st-${s.key}" onclick="setFilter('status','${s.key}',this)">${s.label}</button>`).join('')}
-    </div>`;
-}
 
 // ══════════════════════════════
 //  RENDER
@@ -811,54 +763,28 @@ const STATUS_CLASS = {
 
 function render() {
   const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
-  const tabStatuses = currentTab === 'active' ? ACTIVE_STATUSES : INACTIVE_STATUSES;
-
-  // count all
-  const counts = {};
-  plates.forEach(p => { counts[p.status] = (counts[p.status]||0)+1; });
-  const activeCount   = ACTIVE_STATUSES.reduce((a,s)=>a+(counts[s]||0),0);
-  const inactiveCount = INACTIVE_STATUSES.reduce((a,s)=>a+(counts[s]||0),0);
-
-  // update tab counts
-  document.getElementById('tc-active').textContent   = activeCount;
-  document.getElementById('tc-inactive').textContent = inactiveCount;
-
-  // stats bar
-  const statColors = {
-    Stock:'background:var(--stock);border-color:var(--stock);color:#fff',
-    Admin:'background:var(--admin);border-color:var(--admin);color:#fff',
-    SC:'background:var(--sc);border-color:var(--sc);color:#fff',
-    Customer:'background:var(--customer);border-color:var(--customer);color:#fff',
-    Lose:'background:var(--lose);border-color:var(--lose);color:#fff',
-    Repair:'background:var(--repair-bg);border-color:var(--repair);color:var(--repair)'
-  };
-  document.getElementById('statsBar').innerHTML =
-    tabStatuses.map(s =>
-      `<div class="stat-chip" style="${statColors[s]}">
-        <span class="stat-num">${counts[s]||0}</span>${s}
-      </div>`).join('');
+  // รวมทุกสถานะ เรียงตาม active ก่อน inactive
+  const ALL_STATUS_ORDER = ['Admin','SC','Customer','Stock','Repair','Lose'];
 
   // filter
   let filtered = plates.filter(p => {
-    if (!tabStatuses.includes(p.status)) return false;
     if (filters.company !== 'ALL' && p.company !== filters.company) return false;
     if (filters.status !== 'ALL' && p.status !== filters.status) return false;
     if (search && !p.plateNo.toLowerCase().includes(search) && !p.plateCode.toLowerCase().includes(search)) return false;
     return true;
   });
 
-  // group by status first, then by company (KK before KY)
   const companyOrder = ['KK','KY'];
   let html = '';
 
-  STATUS_GROUPS[currentTab].forEach(({key:status, label}) => {
+  ALL_STATUS_ORDER.forEach(status => {
     if (filters.status !== 'ALL' && filters.status !== status) return;
     const inStatus = filtered.filter(p => p.status === status);
     if (!inStatus.length) return;
 
-    html += `<div style="padding:0 1.5rem 1.25rem">
+    html += `<div style="padding:0 1rem 1.25rem">
       <div class="group-header">
-        <span class="plate-status ${STATUS_CLASS[status]}" style="font-size:17px;padding:5px 16px;font-weight:700;">${label}</span>
+        <span class="plate-status ${STATUS_CLASS[status]}" style="font-size:17px;padding:5px 16px;font-weight:700;">${status}</span>
         <div class="group-line"></div>
         <span class="group-count" style="font-size:16px;">${inStatus.length} ป้าย</span>
       </div>

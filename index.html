@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ระบบป้ายแดง</title>
+<title>ระบบจัดการป้ายแดง — สาขาสุวินทวงศ์</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -27,7 +27,8 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .login-box{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2.5rem;width:360px;text-align:center;}
 .login-logo{font-size:48px;margin-bottom:1rem;}
 .login-title{font-family:'Kanit',sans-serif;font-size:22px;font-weight:600;color:#fff;margin-bottom:.25rem;}
-.login-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:2rem;}
+.login-sub2{font-size:14px;color:rgba(255,200,200,.85);font-weight:500;margin-bottom:.25rem;letter-spacing:.03em;}
+.login-sub{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:2rem;}
 .login-input{width:100%;height:46px;border:1px solid rgba(255,255,255,.15);border-radius:10px;background:rgba(255,255,255,.08);color:#fff;font-family:'Sarabun',sans-serif;font-size:15px;padding:0 1rem;outline:none;text-align:center;letter-spacing:.2em;transition:border .2s;}
 .login-input::placeholder{color:rgba(255,255,255,.3);letter-spacing:0;}
 .login-input:focus{border-color:var(--red-light);}
@@ -99,29 +100,29 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .s-none .plate-status{background:var(--gray-400);color:#fff;}
 
 /* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(10,10,30,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:300;padding:1rem;}
-.modal{background:#fff;border-radius:16px;width:480px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);}
-.modal-header{padding:1.25rem 1.5rem 1rem;border-bottom:1px solid var(--gray-100);display:flex;align-items:flex-start;justify-content:space-between;}
-.modal-title{font-family:'Kanit',sans-serif;font-size:18px;font-weight:600;}
-.modal-plate{font-size:13px;color:var(--muted);margin-top:2px;}
-.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:2px;line-height:1;}
-.modal-close:hover{color:var(--text);}
-.modal-body{padding:1.25rem 1.5rem;}
-.modal-foot{padding:1rem 1.5rem;border-top:1px solid var(--gray-100);display:flex;justify-content:flex-end;gap:8px;}
+.modal-overlay{position:fixed;inset:0;background:rgba(10,10,30,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:300;padding:.75rem;}
+.modal{background:#fff;border-radius:16px;width:460px;max-width:100%;max-height:96vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.modal-header{padding:1rem 1.25rem .875rem;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;flex-shrink:0;display:flex;align-items:flex-start;justify-content:space-between;border-radius:16px 16px 0 0;}
+.modal-title{font-family:'Kanit',sans-serif;font-size:16px;font-weight:600;color:#fff;}
+.modal-plate{font-size:12px;color:rgba(255,255,255,.6);margin-top:2px;}
+.modal-close{background:rgba(255,255,255,.15);border:none;font-size:16px;cursor:pointer;color:#fff;padding:0;line-height:1;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0;}
+.modal-close:hover{background:rgba(255,255,255,.25);}
+.modal-body{padding:1rem 1.25rem;overflow-y:auto;flex:1;}
+.modal-foot{padding:.75rem 1.25rem;border-top:1px solid var(--gray-100);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;background:#fafafa;border-radius:0 0 16px 16px;}
 
 /* FORM */
-.fld{margin-bottom:.875rem;}
-.fld label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;}
-.fld input,.fld select,.fld textarea{width:100%;height:38px;border:1.5px solid var(--gray-200);border-radius:8px;padding:0 10px;font-family:'Sarabun',sans-serif;font-size:14px;outline:none;transition:border .15s;color:var(--text);background:#fff;}
-.fld textarea{height:72px;padding:8px 10px;resize:vertical;}
+.fld{margin-bottom:.625rem;}
+.fld label{display:block;font-size:10px;font-weight:600;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em;}
+.fld input,.fld select,.fld textarea{width:100%;height:34px;border:1.5px solid var(--gray-200);border-radius:8px;padding:0 10px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;transition:border .15s;color:var(--text);background:#fff;}
+.fld textarea{height:60px;padding:7px 10px;resize:vertical;}
 .fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--red);}
 .fld input[readonly]{background:var(--gray-50);color:var(--muted);}
-.fld-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.fld-row{display:grid;grid-template-columns:1fr 1fr;gap:.625rem;}
 
 /* STATUS CHANGE BUTTONS */
-.status-opts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem;}
-.st-btn{padding:10px 8px;border-radius:10px;border:2px solid;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
-.st-btn:hover{transform:translateY(-1px);}
+.status-opts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.75rem;}
+.st-btn{padding:5px 14px;border-radius:20px;border:2px solid;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center;white-space:nowrap;}
+.st-btn:hover{transform:translateY(-1px);opacity:.9;}
 .st-btn.active{box-shadow:0 4px 12px rgba(0,0,0,.15);}
 .st-stock{background:var(--stock);border-color:var(--stock);color:#fff;}
 .st-admin{background:var(--admin);border-color:var(--admin);color:#fff;}
@@ -131,8 +132,8 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .st-repair{background:var(--repair-bg);border-color:var(--repair);color:var(--repair);}
 
 /* INFO ROW */
-.info-row{display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;}
-.info-chip{font-size:12px;padding:4px 10px;border-radius:6px;background:var(--gray-100);color:var(--muted);}
+.info-row{display:flex;gap:.4rem;margin-bottom:.625rem;flex-wrap:wrap;}
+.info-chip{font-size:11px;padding:3px 8px;border-radius:6px;background:var(--gray-100);color:var(--muted);}
 .info-chip b{color:var(--text);}
 
 /* BUTTONS */
@@ -151,7 +152,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .toast.info{background:var(--gray-800);color:#fff;}
 
 /* DIVIDER */
-.section-divider{height:1px;background:var(--gray-200);margin:.875rem 0;}
+.section-divider{height:1px;background:var(--gray-200);margin:.625rem 0;}
 .empty{text-align:center;padding:2rem;color:var(--muted);font-size:13px;}
 
 .hidden{display:none!important;}
@@ -201,7 +202,8 @@ input[type=file]{display:none;}
 <div id="loginScreen" class="login-screen">
   <div class="login-box">
     <div class="login-logo">🚗</div>
-    <div class="login-title">ระบบป้ายแดง</div>
+    <div class="login-title">ระบบจัดการป้ายแดง</div>
+    <div class="login-sub2">สาขา สุวินทวงศ์</div>
     <div class="login-sub">Red Plate Management System</div>
     <input class="login-input" type="password" id="pwInput" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
@@ -222,8 +224,8 @@ input[type=file]{display:none;}
     <div class="topbar-left">
       <span class="topbar-logo">🚗</span>
       <div>
-        <div class="topbar-title">ระบบบริหารป้ายแดง</div>
-        <div class="topbar-sub">Red Plate Management</div>
+        <div class="topbar-title">ระบบจัดการป้ายแดง</div>
+        <div class="topbar-sub">สาขา สุวินทวงศ์</div>
       </div>
     </div>
     <div class="topbar-right">
@@ -550,7 +552,8 @@ function renderModalBody(p, lastWD) {
 
   // current status info
   let infoHtml = `
-    <div class="info-row">
+    <div style="background:linear-gradient(135deg,#f8f9ff,#f0f4ff);border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem;border:1px solid #e8ecf8">
+    <div class="info-row" style="margin-bottom:.375rem">
       <div class="info-chip">สถานะปัจจุบัน: <b>${status||'ไม่ระบุ'}</b></div>
       <div class="info-chip">บริษัท: <b>${p.company}</b></div>
       ${p.licenseNo ? `<div class="info-chip">ใบอนุญาต: <b>${p.licenseNo}</b></div>`:''}
@@ -566,7 +569,7 @@ function renderModalBody(p, lastWD) {
         ${lastWD.dueDate ? `<div class="info-chip">ครบกำหนด: <b>${fmtDate(lastWD.dueDate)}</b></div>`:''}
       </div>`;
   }
-  infoHtml += '<div class="section-divider"></div>';
+  infoHtml += '</div><div class="section-divider"></div>';
 
   // render form based on status
   let formHtml = '';
@@ -577,6 +580,7 @@ function renderModalBody(p, lastWD) {
       <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">เปลี่ยนสถานะเป็น Admin</div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Admin นำป้ายแดงออกจาก Stock เพื่อเตรียมให้ SC เบิก</p>`;
     footHtml = `
+      <button class="btn btn-s" onclick="clearModalForm()">🗑 ล้างฟอร์ม</button>
       <button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>
       <button class="btn btn-p" id="modalSaveBtn" onclick="changeToAdmin()">นำออกให้ Admin</button>`;
 
@@ -598,6 +602,7 @@ function renderModalBody(p, lastWD) {
       </div>
       <div class="fld"><label>วันที่เบิก *</label><input id="f-wddate" type="date" value="${todayISO()}"></div>`;
     footHtml = `
+      <button class="btn btn-s" onclick="clearModalForm()">🗑 ล้างฟอร์ม</button>
       <button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>
       <button class="btn btn-p" id="modalSaveBtn" onclick="withdrawPlate()">บันทึกการเบิก → SC</button>`;
 
@@ -621,6 +626,7 @@ function renderModalBody(p, lastWD) {
         <div class="fld"><label>จำนวนเงินมัดจำ</label><input id="f-deposit" type="number" placeholder="0"></div>
       </div>`;
     footHtml = `
+      <button class="btn btn-s" onclick="clearModalForm()">🗑 ล้างฟอร์ม</button>
       <button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>
       <button class="btn btn-p" id="modalSaveBtn" onclick="handToCustomer()">ปล่อยรถให้ลูกค้า → Customer</button>`;
 
@@ -640,6 +646,7 @@ function renderModalBody(p, lastWD) {
         <div class="fld"><label>เลขที่เงินสดย่อย</label><input id="f-refundref" placeholder="เลขที่เงินสดย่อย"></div>
       </div>`;
     footHtml = `
+      <button class="btn btn-s" onclick="clearModalForm()">🗑 ล้างฟอร์ม</button>
       <button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>
       <button class="btn btn-p" id="modalSaveBtn" onclick="returnToStock()">รับคืน → Admin</button>`;
 
@@ -681,6 +688,14 @@ function renderModalBody(p, lastWD) {
 
   body.innerHTML = infoHtml + formHtml;
   foot.innerHTML = footHtml;
+}
+
+function clearModalForm() {
+  document.querySelectorAll('#modalBody input:not([readonly]), #modalBody select, #modalBody textarea').forEach(el => {
+    if (el.type === 'date') el.value = '';
+    else if (el.tagName === 'SELECT') el.selectedIndex = 0;
+    else el.value = '';
+  });
 }
 
 // ══════════════════════════════

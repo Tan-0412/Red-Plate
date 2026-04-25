@@ -84,8 +84,8 @@ body{font-family:'Prompt',sans-serif;background:var(--bg);color:var(--text);min-
 .plate-top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;}
 .plate-company{font-size:9px;font-weight:600;opacity:.6;letter-spacing:.05em;}
 .plate-date{font-size:9px;opacity:.6;text-align:right;}
-.plate-num{font-family:'Kanit',sans-serif;font-size:19px;font-weight:700;line-height:1.1;margin-bottom:1px;letter-spacing:.02em;}
-.plate-province{font-size:9px;opacity:.55;margin-bottom:4px;letter-spacing:.02em;}
+.plate-num{font-family:'Kanit',sans-serif;font-size:22px;font-weight:700;line-height:1.1;margin-bottom:2px;letter-spacing:.02em;}
+.plate-province{font-size:9px;opacity:.5;margin-bottom:3px;letter-spacing:.02em;}
 .plate-sc{font-size:10px;opacity:.75;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .plate-status{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;display:inline-block;letter-spacing:.03em;}
 
@@ -534,12 +534,12 @@ function render() {
 
       html += `<div class="plate-card ${sc}" onclick="openPlate('${p.plateNo}')">
         <div class="plate-top-row">
-          <span class="plate-company">${p.company}</span>
-          <span class="plate-date">${dateLabel}</span>
+          <span class="plate-company">🏢 ${p.company}</span>
+          <span class="plate-date">${dateLabel?'📅 '+dateLabel:''}</span>
         </div>
-        <div class="plate-num">${p.plateNo}</div>
-        ${scLine?`<div class="plate-sc">${p.status==='Customer'?'👤 ':'SC: '}${scLine}</div>`:''}
+        <div class="plate-num">${p.plateCode}</div>
         <div class="plate-province">${p.province}</div>
+        ${scLine?`<div class="plate-sc">👤 ${p.status==='Customer'?'ลูกค้า: ':'SC: '}${scLine}</div>`:''}
         ${p.remark?`<div style="font-size:9px;margin-top:2px;opacity:.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.remark}</div>`:''}
       </div>`;
     });
@@ -840,7 +840,12 @@ function fmtDateShort(d) {
   try {
     const dt = new Date(d);
     if (isNaN(dt)) return d;
-    return dt.toLocaleDateString('th-TH',{day:'numeric',month:'short'});
+    // format: 14 เม.ย. 69
+    const day = dt.getDate();
+    const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const mon = months[dt.getMonth()];
+    const yr  = String(dt.getFullYear() + 543).slice(-2);
+    return `${day} ${mon} ${yr}`;
   } catch(e) { return d; }
 }
 function fmtDate(d) {

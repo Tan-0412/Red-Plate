@@ -378,8 +378,10 @@ function parseStock(rows) {
     province:   r[2]||'',
     plateNo:    r[3]||'',
     company:    r[5]||'',
-    status:     r[6]||'',
-    remark:     r[7]||''
+    status:      r[6]||'',
+    remark:      r[7]||'',
+    daysOverdue: r[8]||'',
+    detail:      r[9]||''
   })).filter(p => p.plateNo);
 }
 
@@ -523,6 +525,7 @@ function render() {
         <div class="plate-num">${p.plateNo}</div>
         <div class="plate-province">${p.province}</div>
         ${p.remark?`<div style="font-size:9px;margin-top:3px;opacity:.65;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.remark}</div>`:''}
+      ${(p.overdueDays&&Number(p.overdueDays)>0)?`<div style="font-size:9px;margin-top:2px;color:#B71C1C;font-weight:700">⚠ เลย ${p.overdueDays} วัน</div>`:''}
       </div>`;
     });
     html += '</div></div>';
@@ -555,48 +558,50 @@ function renderModalBody(p, lastWD) {
   const body = document.getElementById('modalBody');
   const foot = document.getElementById('modalFoot');
 
-  // current status info
+  // ── Info header (readonly) ──
   let infoHtml = `
     <div style="background:linear-gradient(135deg,#f8f9ff,#f0f4ff);border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem;border:1px solid #e8ecf8">
     <div class="info-row" style="margin-bottom:.375rem">
-      <div class="info-chip">สถานะปัจจุบัน: <b>${status||'ไม่ระบุ'}</b></div>
+      <div class="info-chip">สถานะ: <b>${status||'ไม่ระบุ'}</b></div>
       <div class="info-chip">บริษัท: <b>${p.company}</b></div>
       ${p.licenseNo ? `<div class="info-chip">ใบอนุญาต: <b>${p.licenseNo}</b></div>`:''}
     </div>`;
 
+  // auto fields (readonly)
+  if (p.remark) infoHtml += `<div class="info-row" style="margin-bottom:.25rem"><div class="info-chip">หมายเหตุ: <b>${p.remark}</b></div></div>`;
+  if (p.daysOverdue && String(p.daysOverdue).trim()) infoHtml += `<div class="info-row" style="margin-bottom:.25rem"><div class="info-chip" style="background:#FFEBEE;color:#B71C1C">⚠ เลยกำหนด: <b>${p.daysOverdue} วัน</b></div></div>`;
+
   // last withdraw info
-  if (lastWD && lastWD.withdrawBy) {
-    infoHtml += `
-      <div class="info-row">
-        ${lastWD.withdrawBy ? `<div class="info-chip">เบิกโดย: <b>${lastWD.withdrawBy}</b></div>`:''}
-        ${lastWD.customerName ? `<div class="info-chip">ลูกค้า: <b>${lastWD.customerName}</b></div>`:''}
-        ${lastWD.receiveDate ? `<div class="info-chip">วันรับรถ: <b>${fmtDate(lastWD.receiveDate)}</b></div>`:''}
-        ${lastWD.dueDate ? `<div class="info-chip">ครบกำหนด: <b>${fmtDate(lastWD.dueDate)}</b></div>`:''}
-      </div>`;
+  if (lastWD?.withdrawBy) {
+    infoHtml += `<div class="info-row" style="margin-bottom:0">
+      ${lastWD.withdrawBy?`<div class="info-chip">ผู้เบิก: <b>${lastWD.withdrawBy}</b></div>`:''}
+      ${lastWD.customerName?`<div class="info-chip">ลูกค้า: <b>${lastWD.customerName}</b></div>`:''}
+      ${lastWD.receiveDate?`<div class="info-chip">วันรับรถ: <b>${fmtDate(lastWD.receiveDate)}</b></div>`:''}
+      ${lastWD.dueDate?`<div class="info-chip">ครบกำหนด: <b>${fmtDate(lastWD.dueDate)}</b></div>`:''}
+    </div>`;
   }
   infoHtml += '</div><div class="section-divider"></div>';
 
-  // render form based on status
-  let formHtml = '';
-  let footHtml = `<button class="btn btn-s" onclick="closeModal()">ปิด</button>`;
+  // ── Form + foot per status ──
+  let formHtml = '', footHtml = `<button class="btn btn-s" onclick="clearModalForm()">🗑 ล้างฟอร์ม</button><button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>`;
 
   if (status === 'Stock') {
     formHtml = `
-      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">เปลี่ยนสถานะเป็น Admin</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Admin นำป้ายแดงออกจาก Stock เพื่อเตรียมให้ SC เบิก</p>`;
-    footHtml = `
-      <button class="btn btn-s" onclick="clearModalForm()">🗑 ล้างฟอร์ม</button>
-      <button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>
-      <button class="btn btn-p" id="modalSaveBtn" onclick="changeToAdmin()">นำออกให้ Admin</button>`;
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:.5rem">นำออกให้ Admin</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:.75rem">Admin นำป้ายแดงออกจาก Stock เพื่อเตรียมให้ SC เบิก</p>
+      <div class="fld"><label>รายละเอียด</label><textarea id="f-detail" placeholder="บันทึกเพิ่มเติม (ถ้ามี)"></textarea></div>`;
+    footHtml += `<button class="btn btn-p" id="modalSaveBtn" onclick="changeToAdmin()">นำออกให้ Admin →</button>`;
 
   } else if (status === 'Admin') {
     formHtml = `
-      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">SC เบิกป้ายแดง</div>
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:.5rem">SC เบิกป้ายแดง <span style="color:var(--red);font-size:10px">* จำเป็น</span></div>
       <div class="fld-row">
-        <div class="fld"><label>วันที่จอง</label><input id="f-bookdate" type="date"></div>
-        <div class="fld"><label>ผู้เบิก (ชื่อ SC) *</label><input id="f-scname" placeholder="ชื่อ SC ที่เบิก"></div>
+        <div class="fld"><label>วันที่จอง *</label><input id="f-bookdate" type="date"></div>
+        <div class="fld"><label>วันที่เบิก *</label><input id="f-wddate" type="date" value="${todayISO()}"></div>
       </div>
-      <div class="fld"><label>ประเภทการใช้งาน</label>
+      <div class="fld"><label>ผู้เบิก (SC) *</label><input id="f-scname" placeholder="ชื่อ SC ที่เบิก"></div>
+      <div class="fld"><label>ชื่อลูกค้า *</label><input id="f-custname-sc" placeholder="ชื่อลูกค้า"></div>
+      <div class="fld"><label>ประเภทใช้งาน</label>
         <select id="f-usetype">
           <option value="">-- เลือก --</option>
           <option value="รถใหม่ลูกค้า">รถใหม่ลูกค้า</option>
@@ -605,19 +610,16 @@ function renderModalBody(p, lastWD) {
           <option value="อื่นๆ">อื่นๆ</option>
         </select>
       </div>
-      <div class="fld"><label>วันที่เบิก *</label><input id="f-wddate" type="date" value="${todayISO()}"></div>`;
-    footHtml = `
-      <button class="btn btn-s" onclick="clearModalForm()">🗑 ล้างฟอร์ม</button>
-      <button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>
-      <button class="btn btn-p" id="modalSaveBtn" onclick="withdrawPlate()">บันทึกการเบิก → SC</button>`;
+      <div class="fld"><label>รายละเอียด</label><textarea id="f-detail" placeholder="บันทึกเพิ่มเติม (ถ้ามี)"></textarea></div>`;
+    footHtml += `<button class="btn btn-p" id="modalSaveBtn" onclick="withdrawPlate()">บันทึกการเบิก → SC</button>`;
 
   } else if (status === 'SC') {
     formHtml = `
-      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">SC นำป้ายให้ลูกค้า</div>
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:.5rem">ปล่อยรถให้ลูกค้า <span style="color:var(--red);font-size:10px">* จำเป็น</span></div>
       <div class="fld"><label>ที่ปรึกษาการขาย (SC)</label>
-        <input id="f-sc" value="${lastWD?.withdrawBy||''}" readonly style="background:var(--gray-50);color:var(--muted)">
+        <input id="f-sc" value="${lastWD?.withdrawBy||''}" readonly>
       </div>
-      <div class="fld"><label>ชื่อ-นามสกุล ลูกค้า *</label><input id="f-custname" placeholder="ชื่อลูกค้า"></div>
+      <div class="fld"><label>ชื่อ-นามสกุล ลูกค้า *</label><input id="f-custname" placeholder="ชื่อลูกค้า" value="${lastWD?.customerName||''}"></div>
       <div class="fld-row">
         <div class="fld"><label>หมายเลขตัวรถ *</label><input id="f-chassis" placeholder="หมายเลขตัวรถ"></div>
         <div class="fld"><label>หมายเลขเครื่องยนต์</label><input id="f-engine" placeholder="หมายเลขเครื่องยนต์"></div>
@@ -628,17 +630,13 @@ function renderModalBody(p, lastWD) {
       </div>
       <div class="fld-row">
         <div class="fld"><label>วันที่รับเงินมัดจำ *</label><input id="f-depositdate" type="date" value="${todayISO()}"></div>
-        <div class="fld"><label>จำนวนเงินมัดจำ</label><input id="f-deposit" type="number" placeholder="0"></div>
+        <div class="fld"><label>จำนวนเงินมัดจำ *</label><input id="f-deposit" type="number" placeholder="0"></div>
       </div>`;
-    footHtml = `
-      <button class="btn btn-s" onclick="clearModalForm()">🗑 ล้างฟอร์ม</button>
-      <button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>
-      <button class="btn btn-p" id="modalSaveBtn" onclick="handToCustomer()">ปล่อยรถให้ลูกค้า → Customer</button>`;
+    footHtml += `<button class="btn btn-p" id="modalSaveBtn" onclick="handToCustomer()">ปล่อยรถให้ลูกค้า → Customer</button>`;
 
   } else if (status === 'Customer') {
     formHtml = `
-      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">รับป้ายแดงคืน → Admin</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">ลูกค้าคืนป้ายแดงแล้ว — บันทึกวันคืนป้าย แล้วเปลี่ยนสถานะเป็น Admin</p>
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:.5rem">รับป้ายแดงคืน → Admin <span style="color:var(--red);font-size:10px">* จำเป็น</span></div>
       <div class="fld"><label>วันที่คืนป้าย/คืนเงินมัดจำ *</label><input id="f-refunddate" type="date" value="${todayISO()}"></div>
       <div class="fld-row">
         <div class="fld"><label>ประเภทเงินคืนมัดจำ</label>
@@ -650,44 +648,33 @@ function renderModalBody(p, lastWD) {
         </div>
         <div class="fld"><label>เลขที่เงินสดย่อย</label><input id="f-refundref" placeholder="เลขที่เงินสดย่อย"></div>
       </div>`;
-    footHtml = `
-      <button class="btn btn-s" onclick="clearModalForm()">🗑 ล้างฟอร์ม</button>
-      <button class="btn btn-s" onclick="closeModal()">ยกเลิก</button>
-      <button class="btn btn-p" id="modalSaveBtn" onclick="returnToStock()">รับคืน → Admin</button>`;
+    footHtml += `<button class="btn btn-p" id="modalSaveBtn" onclick="returnToStock()">รับคืน → Admin</button>`;
 
-  } else if (status === 'Lose' || status === 'Repair') {
+  } else if (status === 'Lose' || status === 'Repair' || !status) {
     formHtml = `
-      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">Admin — เปลี่ยนสถานะ</div>
-      <div class="status-opts">
-        <div class="st-btn st-stock" onclick="adminChangeStatus('Stock',this)">Stock</div>
-        <div class="st-btn st-repair" onclick="adminChangeStatus('Repair',this)">Repair</div>
-        <div class="st-btn st-lose" onclick="adminChangeStatus('Lose',this)">Lose</div>
-      </div>`;
-    footHtml = `<button class="btn btn-s" onclick="closeModal()">ปิด</button>`;
-
-  } else {
-    // ไม่มีสถานะ — Admin กำหนดสถานะ
-    formHtml = `
-      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.75rem">Admin — กำหนดสถานะเริ่มต้น</div>
-      <div class="status-opts">
-        <div class="st-btn st-stock" onclick="adminChangeStatus('Stock',this)">Stock</div>
-        <div class="st-btn st-admin" onclick="adminChangeStatus('Admin',this)">Admin</div>
-        <div class="st-btn st-repair" onclick="adminChangeStatus('Repair',this)">Repair</div>
-        <div class="st-btn st-lose" onclick="adminChangeStatus('Lose',this)">Lose</div>
-      </div>`;
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:.5rem">Admin — เปลี่ยนสถานะ</div>
+      <div class="fld"><label>รายละเอียด</label><textarea id="f-detail" placeholder="บันทึกเหตุผลการเปลี่ยนสถานะ"></textarea></div>`;
     footHtml = `<button class="btn btn-s" onclick="closeModal()">ปิด</button>`;
   }
 
-  // Admin override — always show at bottom
+  // ── Admin Override (ทุกสถานะยกเว้น Lose/Repair/ว่าง) ──
   if (!['Lose','Repair',''].includes(status)) {
     formHtml += `
       <div class="section-divider"></div>
-      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">Admin Override</div>
+      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">Admin Override</div>
       <div class="status-opts">
         <div class="st-btn st-stock" onclick="adminChangeStatus('Stock',this)">Stock</div>
         <div class="st-btn st-admin" onclick="adminChangeStatus('Admin',this)">Admin</div>
         <div class="st-btn st-lose" onclick="adminChangeStatus('Lose',this)">Lose</div>
         <div class="st-btn st-repair" onclick="adminChangeStatus('Repair',this)">Repair</div>
+      </div>`;
+  } else {
+    formHtml += `
+      <div class="status-opts" style="margin-top:.5rem">
+        <div class="st-btn st-stock" onclick="adminChangeStatus('Stock',this)">Stock</div>
+        <div class="st-btn st-admin" onclick="adminChangeStatus('Admin',this)">Admin</div>
+        <div class="st-btn st-repair" onclick="adminChangeStatus('Repair',this)">Repair</div>
+        <div class="st-btn st-lose" onclick="adminChangeStatus('Lose',this)">Lose</div>
       </div>`;
   }
 
@@ -703,152 +690,119 @@ function clearModalForm() {
   });
 }
 
+
 // ══════════════════════════════
 //  STATUS ACTIONS
 // ══════════════════════════════
 async function changeToAdmin() {
+  const detail = document.getElementById('f-detail')?.value.trim()||'';
+  if (detail) await gasPost({ action: 'updateDetail', plateNo: currentPlate.plateNo, detail });
   await doUpdateStatus('Admin');
 }
 
 async function withdrawPlate() {
-  const scname = document.getElementById('f-scname')?.value.trim();
-  const wddate = document.getElementById('f-wddate')?.value;
-  if (!scname) { toast('กรุณาระบุผู้เบิก', 'err'); return; }
-  if (!wddate) { toast('กรุณาระบุวันที่เบิก', 'err'); return; }
+  const bookdate = document.getElementById('f-bookdate')?.value;
+  const wddate   = document.getElementById('f-wddate')?.value;
+  const scname   = document.getElementById('f-scname')?.value.trim();
+  const custname = document.getElementById('f-custname-sc')?.value.trim();
+  const detail   = document.getElementById('f-detail')?.value.trim()||'';
+
+  const missing = [];
+  if (!bookdate) missing.push('วันที่จอง');
+  if (!wddate)   missing.push('วันที่เบิก');
+  if (!scname)   missing.push('ผู้เบิก (SC)');
+  if (!custname) missing.push('ชื่อลูกค้า');
+  if (missing.length) { toast('บันทึกข้อมูลไม่ครบ ขาด: ' + missing.join(', '), 'err', 6000); return; }
 
   const row = [
-    document.getElementById('f-bookdate')?.value||'', // วันที่จอง
-    wddate, // วันที่เบิก
-    currentPlate.plateNo,
-    scname, // ผู้เบิก
-    document.getElementById('f-usetype')?.value||'', // ประเภทใช้งาน
-    '', // หมายเลขตัวรถ (กรอกตอนปล่อยรถ)
-    '', // หมายเลขเครื่องยนต์ (กรอกตอนปล่อยรถ)
-    '', // ชื่อนามสกุล_ผู้ขับรถ (กรอกตอน Customer)
-    '', // ที่ปรึกษาการขาย
-    '', // วันที่รับรถ/ปล่อยรถ
-    '', // วันครบกำหนดคืนป้าย
-    '', // วันที่รับเงินมัดจำ
-    '', // จำนวนเงินมัดจำ
-    '', // ประเภทเงินรับมัดจำ
-    '', // เลขที่ใบเสร็จเงินมัดจำ
-    '', // วันที่คืนป้าย/คืนเงินมัดจำ
-    '', // ประเภทเงินคืนมัดจำ
-    '', // เลขที่เงินสดย่อย
-    '' // ผู้ให้เบิก
+    bookdate, wddate, currentPlate.plateNo, scname,
+    document.getElementById('f-usetype')?.value||'',
+    '', '', // F,G: ตัวรถ/เครื่องยนต์ (กรอกตอน SC→Customer)
+    custname, scname, // H: ชื่อลูกค้า, I: SC = D
+    '', '', '', '', '', '', '', '', ''
   ];
 
   const btn = document.getElementById('modalSaveBtn');
   setLoading(btn, true);
   try {
     await gasPost({ action: 'addWithdraw', row: JSON.stringify(row) });
+    if (detail) await gasPost({ action: 'updateDetail', plateNo: currentPlate.plateNo, detail });
     await doUpdateStatus('SC', false);
     toast('บันทึกการเบิกสำเร็จ ✓', 'ok');
-    closeModal();
-    await loadData();
-  } catch(e) {
-    toast('เกิดข้อผิดพลาด: ' + e.message, 'err', 5000);
-    setLoading(btn, false);
-  }
+    closeModal(); await loadData();
+  } catch(e) { toast('เกิดข้อผิดพลาด: '+e.message,'err',5000); setLoading(btn,false); }
 }
 
 async function handToCustomer() {
-  const custname = document.getElementById('f-custname')?.value.trim();
-  const recvdate = document.getElementById('f-recvdate')?.value;
+  const custname    = document.getElementById('f-custname')?.value.trim();
+  const chassis     = document.getElementById('f-chassis')?.value.trim();
+  const engine      = document.getElementById('f-engine')?.value.trim();
+  const recvdate    = document.getElementById('f-recvdate')?.value;
   const depositdate = document.getElementById('f-depositdate')?.value;
-  if (!custname) { toast('กรุณาระบุชื่อลูกค้า', 'err'); return; }
-  if (!recvdate) { toast('กรุณาระบุวันที่รับรถ/ปล่อยรถ', 'err'); return; }
-  if (!depositdate) { toast('กรุณาระบุวันที่รับเงินมัดจำ', 'err'); return; }
+  const deposit     = document.getElementById('f-deposit')?.value;
 
-  // find last withdraw row for this plate and update it
+  const missing = [];
+  if (!custname)    missing.push('ชื่อลูกค้า');
+  if (!chassis)     missing.push('หมายเลขตัวรถ');
+  if (!recvdate)    missing.push('วันที่รับรถ/ปล่อยรถ');
+  if (!depositdate) missing.push('วันที่รับเงินมัดจำ');
+  if (!deposit)     missing.push('จำนวนเงินมัดจำ');
+  if (missing.length) { toast('บันทึกข้อมูลไม่ครบ ขาด: ' + missing.join(', '), 'err', 6000); return; }
+
   const lastWD = [...withdraws].reverse().find(w => w.plateNo === currentPlate.plateNo);
-
   const row = [
-    lastWD?.bookingDate||'', // วันที่จอง
-    lastWD?.dateWithdraw||'', // วันที่เบิก
-    currentPlate.plateNo, // เลขทะเบียนป้ายแดง
-    lastWD?.withdrawBy||'', // ผู้เบิก
-    lastWD?.useType||'', // ประเภทใช้งาน
-    document.getElementById('f-chassis')?.value||lastWD?.chassisNo||'', // หมายเลขตัวรถ
-    document.getElementById('f-engine')?.value||lastWD?.engineNo||'', // หมายเลขเครื่องยนต์
-    custname, // ชื่อนามสกุล_ผู้ขับรถ
-    lastWD?.withdrawBy||'', // ที่ปรึกษาการขาย (col I = col D เสมอ)
-    recvdate, // วันที่รับรถ/ปล่อยรถ
-    document.getElementById('f-duedate')?.value||'', // วันครบกำหนดคืนป้าย
-    document.getElementById('f-depositdate')?.value||'', // L: วันที่รับเงินมัดจำ
-    document.getElementById('f-deposit')?.value||'', // M: จำนวนเงินมัดจำ
-    lastWD?.depositType||'', // ประเภทเงินรับมัดจำ
-    lastWD?.depositRef||'', // เลขที่ใบเสร็จเงินมัดจำ
-    '', // วันที่คืนป้าย/คืนเงินมัดจำ
-    '', // ประเภทเงินคืนมัดจำ
-    '', // เลขที่เงินสดย่อย
-    '' // ผู้ให้เบิก
+    lastWD?.bookingDate||'', lastWD?.dateWithdraw||'', currentPlate.plateNo,
+    lastWD?.withdrawBy||'', lastWD?.useType||'',
+    chassis, engine, custname,
+    lastWD?.withdrawBy||'', // I = D
+    recvdate,
+    '', // K: วันครบกำหนด (สูตร auto ใน Sheet)
+    depositdate, deposit, 'เงินสด', '', '', '', '', ''
   ];
 
   const btn = document.getElementById('modalSaveBtn');
   setLoading(btn, true);
   try {
-    if (lastWD) {
-      // update existing withdraw row
-      await gasPost({ action: 'updateWithdrawFull', plateNo: currentPlate.plateNo, row: JSON.stringify(row) });
-    } else {
-      await gasPost({ action: 'addWithdraw', row: JSON.stringify(row) });
-    }
+    if (lastWD) { await gasPost({ action: 'updateWithdrawFull', plateNo: currentPlate.plateNo, row: JSON.stringify(row) }); }
+    else { await gasPost({ action: 'addWithdraw', row: JSON.stringify(row) }); }
     await doUpdateStatus('Customer', false);
     toast('บันทึกวันปล่อยรถสำเร็จ ✓', 'ok');
-    closeModal();
-    await loadData();
-  } catch(e) {
-    toast('เกิดข้อผิดพลาด: ' + e.message, 'err', 5000);
-    setLoading(btn, false);
-  }
+    closeModal(); await loadData();
+  } catch(e) { toast('เกิดข้อผิดพลาด: '+e.message,'err',5000); setLoading(btn,false); }
 }
 
 async function returnToStock() {
   const refundDate = document.getElementById('f-refunddate')?.value||'';
-  if (!refundDate) { toast('กรุณาระบุวันที่คืนป้าย/คืนเงินมัดจำ', 'err'); return; }
+  if (!refundDate) { toast('บันทึกข้อมูลไม่ครบ ขาด: วันที่คืนป้าย/คืนเงินมัดจำ', 'err', 5000); return; }
+
   const btn = document.getElementById('modalSaveBtn');
   setLoading(btn, true);
   try {
-    const refundType = document.getElementById('f-refundtype')?.value||'';
-    const refundRef = document.getElementById('f-refundref')?.value||'';
-    await gasPost({
-      action: 'updateRefund',
-      plateNo: currentPlate.plateNo,
-      refundDate, refundType, refundRef
+    await gasPost({ action: 'updateRefund', plateNo: currentPlate.plateNo,
+      refundDate,
+      refundType: document.getElementById('f-refundtype')?.value||'',
+      refundRef:  document.getElementById('f-refundref')?.value||''
     });
     await doUpdateStatus('Admin', false);
     toast('รับป้ายคืนเรียบร้อย → Admin ✓', 'ok');
-    closeModal();
-    await loadData();
-  } catch(e) {
-    toast('เกิดข้อผิดพลาด: ' + e.message, 'err', 5000);
-    setLoading(btn, false);
-  }
+    closeModal(); await loadData();
+  } catch(e) { toast('เกิดข้อผิดพลาด: '+e.message,'err',5000); setLoading(btn,false); }
 }
 
 async function adminChangeStatus(status, btn) {
-  document.querySelectorAll('.st-btn').forEach(b => b.style.opacity = '0.5');
-  btn.style.opacity = '1';
-  btn.style.fontWeight = '700';
+  document.querySelectorAll('.st-btn').forEach(b => { b.style.opacity='0.5'; b.style.fontWeight=''; });
+  btn.style.opacity='1'; btn.style.fontWeight='700';
   await doUpdateStatus(status);
 }
 
 async function doUpdateStatus(newStatus, reload=true) {
   try {
-    const r = await gasPost({ action: 'updateStatus', plateNo: currentPlate.plateNo, status: newStatus });
-    // update local state
-    const p = plates.find(x => x.plateNo === currentPlate.plateNo);
+    const plateNo = currentPlate.plateNo;
+    await gasPost({ action: 'updateStatus', plateNo, status: newStatus });
+    const p = plates.find(x => x.plateNo === plateNo);
     if (p) p.status = newStatus;
-    if (reload) {
-      toast(`เปลี่ยนสถานะเป็น ${newStatus} สำเร็จ ✓`, 'ok');
-      closeModal();
-      render();
-    }
-  } catch(e) {
-    toast('บันทึกไม่สำเร็จ: ' + e.message, 'err', 5000);
-    throw e;
-  }
+    if (reload) { closeModal(); toast(`เปลี่ยนสถานะเป็น ${newStatus} สำเร็จ ✓`,'ok'); render(); }
+  } catch(e) { toast('บันทึกไม่สำเร็จ: '+e.message,'err',5000); throw e; }
 }
 
 function closeModal() {

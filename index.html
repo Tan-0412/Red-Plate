@@ -684,6 +684,8 @@ function updatePrintHeader(wdFrom, wdTo, dueFrom, dueTo) {
 function printReport() {
   window.print();
 }
+
+function setPage(page) {
   currentPage = page;
   document.getElementById('dashPage').classList.toggle('active', page === 'dash');
   document.getElementById('platePage').classList.toggle('active', page === 'plates');

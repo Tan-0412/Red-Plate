@@ -20,7 +20,8 @@
   --shadow:0 2px 8px rgba(0,0,0,.08);--shadow-lg:0 8px 24px rgba(0,0,0,.12);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:18px;}
+body{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:18px;overflow-x:hidden;}
+#app{padding-bottom:60px;overflow-x:hidden;max-width:100vw;}
 
 /* LOGIN */
 .login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;align-items:center;justify-content:center;z-index:1000;overflow:hidden;}
@@ -301,8 +302,24 @@ input[type=file]{display:none;}
   .bnav-btn{padding:.875rem 0;font-size:11px;}
   #app{padding-bottom:0;padding-left:68px;}
 }
+/* REPORT PAGE */
+#reportPage{display:none;}
+#reportPage.active{display:block;}
+.rpt-date-input{width:100%;height:36px;border:1.5px solid var(--gray-200);border-radius:8px;padding:0 8px;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:14px;outline:none;box-sizing:border-box;}
+.rpt-date-input:focus{border-color:var(--red);}
+#rpt-table th{background:#1a2d45;color:#fff;padding:8px 10px;text-align:left;font-size:13px;white-space:nowrap;}
+#rpt-table td{padding:7px 10px;border-bottom:1px solid var(--gray-200);font-size:14px;vertical-align:top;}
+#rpt-table tr:nth-child(even) td{background:#f8faff;}
+#rpt-table tr:hover td{background:#eef3ff;}
+@media print{
+  body *{visibility:hidden;}
+  #reportPage,#reportPage *{visibility:visible;}
+  #reportPage{position:fixed;inset:0;padding:1rem;}
+  .bottom-nav,.topbar,#rpt-filter-bar{display:none!important;}
+  #rpt-table{font-size:12px;width:100%;}
+  #rpt-table th{background:#1a2d45!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
 </style>
-</head>
 <body>
 
 <!-- LOGIN -->
@@ -340,7 +357,7 @@ input[type=file]{display:none;}
     </div>
     <div class="topbar-right">
       <div class="sync-badge"><span class="dot" id="syncDot"></span><span id="syncTxt">กำลังโหลด...</span></div>
-      <button class="btn btn-s" style="height:34px;font-size:14px;padding:0 12px;" onclick="loadData()">↻ รีโหลด</button>
+      <button class="btn btn-s" style="height:36px;width:36px;font-size:18px;padding:0;border-radius:50%;" onclick="loadData()" title="รีโหลด">↻</button>
     </div>
   </div>
 
@@ -351,6 +368,9 @@ input[type=file]{display:none;}
     </button>
     <button class="bnav-btn" id="bnav-plates" onclick="setPage('plates')">
       <span class="bnav-icon">🚗</span>ป้าย
+    </button>
+    <button class="bnav-btn" id="bnav-report" onclick="setPage('report')">
+      <span class="bnav-icon">📊</span>รายงาน
     </button>
     <button class="bnav-btn" id="bnav-search" onclick="setPage('search')">
       <span class="bnav-icon">🔍</span>ค้นหา
@@ -379,26 +399,6 @@ input[type=file]{display:none;}
     </div>
 
     <!-- Shortcuts -->
-    <div class="dash-section" style="padding-bottom:1rem;">
-      <div class="dash-title">⚡ ทำอะไรต่อ?</div>
-      <div class="shortcut-grid">
-        <button class="sc-btn" style="background:var(--stock-bg);color:var(--stock);" onclick="openAddPlate()">
-          <span class="sc-btn-icon">➕</span>เพิ่มป้าย
-        </button>
-        <button class="sc-btn" style="background:var(--sc-bg);color:var(--sc);" onclick="setPage('plates');setTab('active',document.getElementById('tab-active'))">
-          <span class="sc-btn-icon">📋</span>กำลังใช้
-        </button>
-        <button class="sc-btn" style="background:var(--customer-bg);color:var(--customer);" onclick="setPage('plates');setFilter('status','Customer',document.getElementById('fb-st-Customer'))">
-          <span class="sc-btn-icon">👤</span>Customer
-        </button>
-        <button class="sc-btn" style="background:#E3F2FD;color:#1565C0;" onclick="setPage('plates');setTab('inactive',document.getElementById('tab-inactive'))">
-          <span class="sc-btn-icon">📦</span>Stock
-        </button>
-        <button class="sc-btn" style="background:var(--gray-100);color:var(--gray-700);" onclick="setPage('search')">
-          <span class="sc-btn-icon">🔍</span>ค้นหา
-        </button>
-      </div>
-    </div>
   </div>
 
   <!-- ════ PLATES PAGE ════ -->
@@ -430,6 +430,55 @@ input[type=file]{display:none;}
     </div>
     <div class="search-results" id="searchPageResults">
       <div style="text-align:center;padding:2rem;color:var(--muted);font-size:16px;">พิมพ์เพื่อค้นหาป้ายทะเบียน</div>
+    </div>
+  </div>
+
+  <!-- ════ REPORT PAGE ════ -->
+  <div id="reportPage">
+    <div id="rpt-filter-bar" style="padding:.75rem 1rem;background:#fff;border-bottom:1px solid var(--gray-200);position:sticky;top:56px;z-index:90;">
+
+      <!-- แท็บ SC / Customer -->
+      <div style="display:flex;gap:.5rem;margin-bottom:.75rem;">
+        <button id="rpt-tab-sc" class="fbtn on" onclick="setReportTab('SC')">📋 SC</button>
+        <button id="rpt-tab-cu" class="fbtn" onclick="setReportTab('Customer')">👤 Customer</button>
+      </div>
+
+      <!-- ตัวกรอง -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem;">
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">วันที่เบิก (เริ่ม)</div>
+          <input type="date" id="rpt-wd-from" class="rpt-date-input" oninput="renderReport()">
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">วันที่เบิก (สิ้นสุด)</div>
+          <input type="date" id="rpt-wd-to" class="rpt-date-input" oninput="renderReport()">
+        </div>
+        <div id="rpt-due-group" style="display:none;">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">ครบกำหนดคืน (เริ่ม)</div>
+          <input type="date" id="rpt-due-from" class="rpt-date-input" oninput="renderReport()">
+        </div>
+        <div id="rpt-due-group2" style="display:none;">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">ครบกำหนดคืน (สิ้นสุด)</div>
+          <input type="date" id="rpt-due-to" class="rpt-date-input" oninput="renderReport()">
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem;">
+        <span id="rpt-count" style="font-size:14px;color:var(--muted);">— รายการ</span>
+        <div style="display:flex;gap:.4rem;">
+          <button class="fbtn" onclick="clearReportFilters()" style="font-size:13px;padding:4px 10px;">✕ ล้าง</button>
+          <button class="btn" onclick="printReport()" style="height:32px;font-size:14px;padding:0 14px;background:var(--red);">🖨️ พิมพ์ / PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ตาราง -->
+    <div style="padding:.75rem 1rem;overflow-x:auto;">
+      <table id="rpt-table" style="width:100%;border-collapse:collapse;font-size:14px;min-width:520px;">
+        <thead id="rpt-thead"></thead>
+        <tbody id="rpt-tbody"></tbody>
+      </table>
+      <div id="rpt-empty" style="display:none;text-align:center;padding:2rem;color:var(--muted);">ไม่พบข้อมูลในช่วงที่เลือก</div>
     </div>
   </div>
 
@@ -479,22 +528,113 @@ const STATUS_GROUPS = {
 // ══════════════════════════════
 //  PAGE NAVIGATION
 // ══════════════════════════════
+let reportTab = 'SC';
+
 function setPage(page) {
   currentPage = page;
-  // toggle pages
   document.getElementById('dashPage').classList.toggle('active', page === 'dash');
   document.getElementById('platePage').classList.toggle('active', page === 'plates');
   document.getElementById('searchPage').classList.toggle('active', page === 'search');
-  // toggle nav buttons
-  ['dash','plates','search'].forEach(p => {
+  document.getElementById('reportPage').classList.toggle('active', page === 'report');
+  ['dash','plates','search','report'].forEach(p => {
     document.getElementById('bnav-'+p)?.classList.toggle('on', p === page);
   });
-  // topbar title
-  const titles = {dash:'หน้าหลัก', plates:'รายการป้ายแดง', search:'ค้นหาป้าย'};
+  const titles = {dash:'หน้าหลัก', plates:'รายการป้ายแดง', search:'ค้นหาป้าย', report:'รายงาน'};
   document.getElementById('topbarTitle').textContent = titles[page] || 'ระบบจัดการป้ายแดง';
-
   if (page === 'dash') renderDashboard();
   if (page === 'search') document.getElementById('searchPageInput')?.focus();
+  if (page === 'report') renderReport();
+}
+
+function setReportTab(tab) {
+  reportTab = tab;
+  document.getElementById('rpt-tab-sc').classList.toggle('on', tab === 'SC');
+  document.getElementById('rpt-tab-cu').classList.toggle('on', tab === 'Customer');
+  // ซ่อน/แสดง due date สำหรับ Customer เท่านั้น
+  const showDue = tab === 'Customer';
+  document.getElementById('rpt-due-group').style.display  = showDue ? '' : 'none';
+  document.getElementById('rpt-due-group2').style.display = showDue ? '' : 'none';
+  renderReport();
+}
+
+function clearReportFilters() {
+  ['rpt-wd-from','rpt-wd-to','rpt-due-from','rpt-due-to'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  renderReport();
+}
+
+function renderReport() {
+  const wdFrom  = document.getElementById('rpt-wd-from')?.value;
+  const wdTo    = document.getElementById('rpt-wd-to')?.value;
+  const dueFrom = document.getElementById('rpt-due-from')?.value;
+  const dueTo   = document.getElementById('rpt-due-to')?.value;
+
+  // กรองรายการ withdraw ตาม tab และช่วงวันที่
+  const rows = withdraws.filter(w => {
+    // หา plate ที่ตรง status ปัจจุบัน
+    const plate = plates.find(p => p.plateNo === w.plateNo);
+    if (!plate || plate.status !== reportTab) return false;
+    if (!w.dateWithdraw) return false;
+
+    const wd = parseDateStr(w.dateWithdraw);
+    if (wdFrom && wd < new Date(wdFrom)) return false;
+    if (wdTo   && wd > new Date(wdTo + 'T23:59:59')) return false;
+
+    if (reportTab === 'Customer' && w.dueDate) {
+      const due = parseDateStr(w.dueDate);
+      if (dueFrom && due < new Date(dueFrom)) return false;
+      if (dueTo   && due > new Date(dueTo + 'T23:59:59')) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('rpt-count').textContent = rows.length + ' รายการ';
+  document.getElementById('rpt-empty').style.display = rows.length ? 'none' : '';
+
+  // render thead
+  const isCust = reportTab === 'Customer';
+  const thead = document.getElementById('rpt-thead');
+  const tbody = document.getElementById('rpt-tbody');
+  thead.innerHTML = `<tr>
+    <th>#</th>
+    <th>ทะเบียน</th>
+    <th>บริษัท</th>
+    <th>วันที่เบิก</th>
+    <th>SC / ผู้เบิก</th>
+    ${isCust ? '<th>ลูกค้า</th><th>วันครบกำหนด</th><th>สถานะ</th>' : ''}
+    <th>หมายเหตุ</th>
+  </tr>`;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  tbody.innerHTML = rows.map((w, i) => {
+    const plate = plates.find(p => p.plateNo === w.plateNo);
+    const plateCode = plate?.plateCode || w.plateNo;
+    const co = plate?.company || '-';
+    let dueBadge = '';
+    if (isCust && w.dueDate) {
+      const due = parseDateStr(w.dueDate);
+      const diff = due ? Math.floor((today - due) / 86400000) : 0;
+      dueBadge = diff > 0
+        ? `<span style="color:var(--red);font-weight:700;">เกิน ${diff} วัน</span>`
+        : `<span style="color:var(--green);">ปกติ</span>`;
+    }
+    return `<tr>
+      <td style="color:var(--muted);font-size:12px;">${i+1}</td>
+      <td style="font-weight:700;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:18px;color:var(--${reportTab.toLowerCase()});">${plateCode}</td>
+      <td>${co}</td>
+      <td>${fmtDateShort(w.dateWithdraw)}</td>
+      <td>${w.withdrawBy||'-'}</td>
+      ${isCust ? `<td>${w.customerName||'-'}</td><td>${fmtDateShort(w.dueDate)}</td><td>${dueBadge}</td>` : ''}
+      <td style="color:var(--muted);font-size:13px;">${w.remark||''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function printReport() {
+  window.print();
 }
 
 // ══════════════════════════════
@@ -788,14 +928,6 @@ function render() {
     const inStatus = filtered.filter(p => p.status === status);
     if (!inStatus.length) return;
 
-    html += `<div style="padding:0 1rem 1.25rem">
-      <div class="group-header">
-        <span class="plate-status ${STATUS_CLASS[status]}" style="font-size:17px;padding:5px 16px;font-weight:700;">${status}</span>
-        <div class="group-line"></div>
-        <span class="group-count" style="font-size:16px;">${inStatus.length} ป้าย</span>
-      </div>
-      <div class="plates-grid">`;
-
     // sort: KK first, then KY, then by plateNo
     inStatus.sort((a,b) => {
       const coA = companyOrder.indexOf(a.company) >= 0 ? companyOrder.indexOf(a.company) : 99;
@@ -804,28 +936,87 @@ function render() {
       return a.plateNo.localeCompare(b.plateNo, 'th', {numeric:true});
     });
 
+    // แบ่งตาม company
+    const byCompany = {};
     inStatus.forEach(p => {
-      const sc = STATUS_CLASS[p.status] || 's-none';
-      const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo);
-      const scName   = lwd?.withdrawBy   || '';
-      const custName = lwd?.customerName || '';
-      let dateLabel = '';
-      if (p.status === 'Customer' && lwd?.receiveDate)  dateLabel = fmtDateShort(lwd.receiveDate);
-      else if (p.status === 'SC' && lwd?.dateWithdraw)  dateLabel = fmtDateShort(lwd.dateWithdraw);
-      const scLine = p.status === 'Customer' && custName ? custName : scName;
-
-      html += `<div class="plate-card ${sc}" onclick="openPlate('${p.plateNo}')">
-        <div class="plate-top-row">
-          <span class="plate-company">${p.company}</span>
-          <span class="plate-date">${dateLabel||''}</span>
-        </div>
-        <div class="plate-num">${p.plateCode}</div>
-        <div class="plate-province">${p.province}</div>
-        ${scName?`<div class="plate-sc">SC: ${scName}</div>`:''}
-        ${p.remark?`<div class="plate-remark">${p.remark}</div>`:''}
-      </div>`;
+      const co = p.company || 'อื่นๆ';
+      if (!byCompany[co]) byCompany[co] = [];
+      byCompany[co].push(p);
     });
-    html += '</div></div>';
+
+    // สีพื้นหลัง sub-section ตาม company
+    const coBg  = { KK: '#fff8f0', KY: '#f0f4ff' };
+    const coBdr = { KK: '#f5a623', KY: '#4a7fd4' };
+    const coTxt = { KK: '#b36000', KY: '#1a4a9e' };
+
+    html += `<div style="padding:0 1rem 1.25rem">
+      <div class="group-header">
+        <span class="plate-status ${STATUS_CLASS[status]}" style="font-size:17px;padding:5px 16px;font-weight:700;">${status}</span>
+        <div class="group-line"></div>
+        <span class="group-count" style="font-size:16px;">${inStatus.length} ป้าย</span>
+      </div>`;
+
+    companyOrder.forEach(co => {
+      const coPlates = byCompany[co];
+      if (!coPlates?.length) return;
+      const bg  = coBg[co]  || '#fafafa';
+      const bdr = coBdr[co] || '#ccc';
+      const txt = coTxt[co] || '#555';
+
+      html += `<div style="background:${bg};border:2px solid ${bdr}40;border-radius:14px;padding:.6rem .75rem .75rem;margin-bottom:.6rem;">
+        <div style="font-size:14px;font-weight:700;color:${txt};margin-bottom:.5rem;letter-spacing:.04em;">${co} <span style="font-weight:400;opacity:.7">${coPlates.length} ป้าย</span></div>
+        <div class="plates-grid">`;
+
+      coPlates.forEach(p => {
+        const sc = STATUS_CLASS[p.status] || 's-none';
+        const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo);
+        const scName = lwd?.withdrawBy || '';
+        let dateLabel = '';
+        if (p.status === 'Customer' && lwd?.receiveDate) dateLabel = fmtDateShort(lwd.receiveDate);
+        else if (p.status === 'SC' && lwd?.dateWithdraw) dateLabel = fmtDateShort(lwd.dateWithdraw);
+
+        html += `<div class="plate-card ${sc}" onclick="openPlate('${p.plateNo}')">
+          <div class="plate-top-row">
+            <span class="plate-company">${p.company}</span>
+            <span class="plate-date">${dateLabel||''}</span>
+          </div>
+          <div class="plate-num">${p.plateCode}</div>
+          <div class="plate-province">${p.province}</div>
+          ${scName?`<div class="plate-sc">SC: ${scName}</div>`:''}
+          ${p.remark?`<div class="plate-remark">${p.remark}</div>`:''}
+        </div>`;
+      });
+      html += '</div></div>';
+    });
+
+    // company อื่นที่ไม่ใช่ KK/KY
+    const others = Object.entries(byCompany).filter(([co]) => !companyOrder.includes(co));
+    others.forEach(([co, coPlates]) => {
+      html += `<div style="background:#fafafa;border:2px solid #ccc40;border-radius:14px;padding:.6rem .75rem .75rem;margin-bottom:.6rem;">
+        <div style="font-size:14px;font-weight:700;color:#555;margin-bottom:.5rem;">${co} <span style="font-weight:400;opacity:.7">${coPlates.length} ป้าย</span></div>
+        <div class="plates-grid">`;
+      coPlates.forEach(p => {
+        const sc = STATUS_CLASS[p.status] || 's-none';
+        const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo);
+        const scName = lwd?.withdrawBy || '';
+        let dateLabel = '';
+        if (p.status === 'Customer' && lwd?.receiveDate) dateLabel = fmtDateShort(lwd.receiveDate);
+        else if (p.status === 'SC' && lwd?.dateWithdraw) dateLabel = fmtDateShort(lwd.dateWithdraw);
+        html += `<div class="plate-card ${sc}" onclick="openPlate('${p.plateNo}')">
+          <div class="plate-top-row">
+            <span class="plate-company">${p.company}</span>
+            <span class="plate-date">${dateLabel||''}</span>
+          </div>
+          <div class="plate-num">${p.plateCode}</div>
+          <div class="plate-province">${p.province}</div>
+          ${scName?`<div class="plate-sc">SC: ${scName}</div>`:''}
+          ${p.remark?`<div class="plate-remark">${p.remark}</div>`:''}
+        </div>`;
+      });
+      html += '</div></div>';
+    });
+
+    html += '</div>';
   });
 
   if (!filtered.length) html = '<div class="empty">ไม่พบป้ายแดงที่ตรงกับเงื่อนไข</div>';

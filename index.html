@@ -314,8 +314,9 @@ input[type=file]{display:none;}
 @media print{
   body *{visibility:hidden;}
   #reportPage,#reportPage *{visibility:visible;}
-  #reportPage{position:fixed;inset:0;padding:1rem;}
-  .bottom-nav,.topbar,#rpt-filter-bar{display:none!important;}
+  #reportPage{position:fixed;inset:0;padding:.5rem;}
+  #rpt-filter-bar{display:none!important;}
+  #rpt-print-header{display:block!important;}
   #rpt-table{font-size:12px;width:100%;}
   #rpt-table th{background:#1a2d45!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 }
@@ -437,10 +438,11 @@ input[type=file]{display:none;}
   <div id="reportPage">
     <div id="rpt-filter-bar" style="padding:.75rem 1rem;background:#fff;border-bottom:1px solid var(--gray-200);position:sticky;top:56px;z-index:90;">
 
-      <!-- แท็บ SC / Customer -->
-      <div style="display:flex;gap:.5rem;margin-bottom:.75rem;">
+      <!-- แท็บ SC / Customer / เกินกำหนด -->
+      <div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;">
         <button id="rpt-tab-sc" class="fbtn on" onclick="setReportTab('SC')">📋 SC</button>
         <button id="rpt-tab-cu" class="fbtn" onclick="setReportTab('Customer')">👤 Customer</button>
+        <button id="rpt-tab-ov" class="fbtn" onclick="setReportTab('Overdue')" style="border-color:#c0392b;color:#c0392b;">⚠️ เกินกำหนดคืน</button>
       </div>
 
       <!-- ตัวกรอง -->
@@ -470,6 +472,13 @@ input[type=file]{display:none;}
           <button class="btn" onclick="printReport()" style="height:32px;font-size:14px;padding:0 14px;background:var(--red);">🖨️ พิมพ์ / PDF</button>
         </div>
       </div>
+    </div>
+
+    <!-- หัวรายงาน (แสดงเฉพาะตอนพิมพ์) -->
+    <div id="rpt-print-header" style="display:none;padding:1rem 1rem .5rem;">
+      <div style="font-size:22px;font-weight:700;text-align:center;margin-bottom:4px;">รายงานการใช้ป้ายแดง สาขา สุวินทวงศ์</div>
+      <div id="rpt-print-subtitle" style="font-size:15px;text-align:center;color:#555;margin-bottom:4px;"></div>
+      <div id="rpt-print-range" style="font-size:14px;text-align:center;color:#777;"></div>
     </div>
 
     <!-- ตาราง -->
@@ -529,29 +538,30 @@ const STATUS_GROUPS = {
 //  PAGE NAVIGATION
 // ══════════════════════════════
 let reportTab = 'SC';
-
-function setPage(page) {
-  currentPage = page;
-  document.getElementById('dashPage').classList.toggle('active', page === 'dash');
-  document.getElementById('platePage').classList.toggle('active', page === 'plates');
-  document.getElementById('searchPage').classList.toggle('active', page === 'search');
-  document.getElementById('reportPage').classList.toggle('active', page === 'report');
-  ['dash','plates','search','report'].forEach(p => {
-    document.getElementById('bnav-'+p)?.classList.toggle('on', p === page);
-  });
-  const titles = {dash:'หน้าหลัก', plates:'รายการป้ายแดง', search:'ค้นหาป้าย', report:'รายงาน'};
-  document.getElementById('topbarTitle').textContent = titles[page] || 'ระบบจัดการป้ายแดง';
-  if (page === 'dash') renderDashboard();
-  if (page === 'search') document.getElementById('searchPageInput')?.focus();
-  if (page === 'report') renderReport();
-}
+let reportOverdueOnly = false;
 
 function setReportTab(tab) {
-  reportTab = tab;
+  reportOverdueOnly = (tab === 'Overdue');
+  reportTab = reportOverdueOnly ? 'Customer' : tab;
+
   document.getElementById('rpt-tab-sc').classList.toggle('on', tab === 'SC');
   document.getElementById('rpt-tab-cu').classList.toggle('on', tab === 'Customer');
-  // ซ่อน/แสดง due date สำหรับ Customer เท่านั้น
-  const showDue = tab === 'Customer';
+
+  // ปุ่มเกินกำหนด — สีแดงเมื่อ active
+  const ovBtn = document.getElementById('rpt-tab-ov');
+  ovBtn.classList.toggle('on', reportOverdueOnly);
+  if (reportOverdueOnly) {
+    ovBtn.style.background = 'var(--red)';
+    ovBtn.style.color = '#fff';
+    ovBtn.style.borderColor = 'var(--red)';
+  } else {
+    ovBtn.style.background = '';
+    ovBtn.style.color = '#c0392b';
+    ovBtn.style.borderColor = '#c0392b';
+  }
+
+  // due date กรอง — แสดงเฉพาะ Customer / Overdue
+  const showDue = (tab === 'Customer' || tab === 'Overdue');
   document.getElementById('rpt-due-group').style.display  = showDue ? '' : 'none';
   document.getElementById('rpt-due-group2').style.display = showDue ? '' : 'none';
   renderReport();
@@ -570,45 +580,59 @@ function renderReport() {
   const wdTo    = document.getElementById('rpt-wd-to')?.value;
   const dueFrom = document.getElementById('rpt-due-from')?.value;
   const dueTo   = document.getElementById('rpt-due-to')?.value;
+  const today   = new Date(); today.setHours(0,0,0,0);
+  const isCust  = (reportTab === 'Customer');
 
-  // กรองรายการ withdraw ตาม tab และช่วงวันที่
-  const rows = withdraws.filter(w => {
-    // หา plate ที่ตรง status ปัจจุบัน
+  let rows = withdraws.filter(w => {
     const plate = plates.find(p => p.plateNo === w.plateNo);
     if (!plate || plate.status !== reportTab) return false;
     if (!w.dateWithdraw) return false;
 
+    // กรองวันที่เบิก
     const wd = parseDateStr(w.dateWithdraw);
     if (wdFrom && wd < new Date(wdFrom)) return false;
     if (wdTo   && wd > new Date(wdTo + 'T23:59:59')) return false;
 
-    if (reportTab === 'Customer' && w.dueDate) {
+    // กรองวันครบกำหนด (Customer)
+    if (isCust && w.dueDate) {
       const due = parseDateStr(w.dueDate);
       if (dueFrom && due < new Date(dueFrom)) return false;
       if (dueTo   && due > new Date(dueTo + 'T23:59:59')) return false;
     }
+
+    // กรองเฉพาะเกินกำหนด
+    if (reportOverdueOnly) {
+      if (!w.dueDate) return false;
+      const due = parseDateStr(w.dueDate);
+      if (!due || due >= today) return false;
+    }
     return true;
+  });
+
+  // เรียงลำดับตาม receiveDate จากเก่าสุด → ใหม่สุด
+  rows.sort((a, b) => {
+    const da = parseDateStr(a.receiveDate) || parseDateStr(a.dateWithdraw);
+    const db = parseDateStr(b.receiveDate) || parseDateStr(b.dateWithdraw);
+    return (da?.getTime() || 0) - (db?.getTime() || 0);
   });
 
   document.getElementById('rpt-count').textContent = rows.length + ' รายการ';
   document.getElementById('rpt-empty').style.display = rows.length ? 'none' : '';
 
-  // render thead
-  const isCust = reportTab === 'Customer';
+  // thead
   const thead = document.getElementById('rpt-thead');
-  const tbody = document.getElementById('rpt-tbody');
   thead.innerHTML = `<tr>
     <th>#</th>
     <th>ทะเบียน</th>
     <th>บริษัท</th>
     <th>วันที่เบิก</th>
     <th>SC / ผู้เบิก</th>
-    ${isCust ? '<th>ลูกค้า</th><th>วันครบกำหนด</th><th>สถานะ</th>' : ''}
+    ${isCust ? '<th>ลูกค้า</th><th>วันรับรถ/ปล่อยรถ</th><th>วันครบกำหนดคืน</th><th>สถานะ</th>' : ''}
     <th>หมายเหตุ</th>
   </tr>`;
 
-  const today = new Date(); today.setHours(0,0,0,0);
-
+  // tbody
+  const tbody = document.getElementById('rpt-tbody');
   tbody.innerHTML = rows.map((w, i) => {
     const plate = plates.find(p => p.plateNo === w.plateNo);
     const plateCode = plate?.plateCode || w.plateNo;
@@ -619,7 +643,7 @@ function renderReport() {
       const diff = due ? Math.floor((today - due) / 86400000) : 0;
       dueBadge = diff > 0
         ? `<span style="color:var(--red);font-weight:700;">เกิน ${diff} วัน</span>`
-        : `<span style="color:var(--green);">ปกติ</span>`;
+        : `<span style="color:#1a8a55;">ปกติ</span>`;
     }
     return `<tr>
       <td style="color:var(--muted);font-size:12px;">${i+1}</td>
@@ -627,15 +651,54 @@ function renderReport() {
       <td>${co}</td>
       <td>${fmtDateShort(w.dateWithdraw)}</td>
       <td>${w.withdrawBy||'-'}</td>
-      ${isCust ? `<td>${w.customerName||'-'}</td><td>${fmtDateShort(w.dueDate)}</td><td>${dueBadge}</td>` : ''}
+      ${isCust ? `<td>${w.customerName||'-'}</td><td>${fmtDateShort(w.receiveDate)}</td><td>${fmtDateShort(w.dueDate)}</td><td>${dueBadge}</td>` : ''}
       <td style="color:var(--muted);font-size:13px;">${w.remark||''}</td>
     </tr>`;
   }).join('');
+
+  // อัพเดท print header
+  updatePrintHeader(wdFrom, wdTo, dueFrom, dueTo);
+}
+
+function updatePrintHeader(wdFrom, wdTo, dueFrom, dueTo) {
+  // subtitle
+  let subtitle = reportTab === 'SC' ? 'สถานะ SC' : 'สถานะ Customer';
+  if (reportOverdueOnly) subtitle += ' (เกินกำหนดคืน)';
+  document.getElementById('rpt-print-subtitle').textContent = subtitle;
+
+  // date range description
+  const parts = [];
+  if (wdFrom || wdTo) {
+    let s = 'วันที่เบิก ตั้งแต่ ' + (wdFrom ? fmtDateShort(new Date(wdFrom)) : '—');
+    s += ' ถึง ' + (wdTo ? fmtDateShort(new Date(wdTo)) : '—');
+    parts.push(s);
+  }
+  if ((dueFrom || dueTo) && reportTab === 'Customer') {
+    let s = 'วันครบกำหนดคืน ตั้งแต่ ' + (dueFrom ? fmtDateShort(new Date(dueFrom)) : '—');
+    s += ' ถึง ' + (dueTo ? fmtDateShort(new Date(dueTo)) : '—');
+    parts.push(s);
+  }
+  document.getElementById('rpt-print-range').textContent = parts.join('  |  ');
 }
 
 function printReport() {
   window.print();
 }
+  currentPage = page;
+  document.getElementById('dashPage').classList.toggle('active', page === 'dash');
+  document.getElementById('platePage').classList.toggle('active', page === 'plates');
+  document.getElementById('searchPage').classList.toggle('active', page === 'search');
+  document.getElementById('reportPage').classList.toggle('active', page === 'report');
+  ['dash','plates','search','report'].forEach(p => {
+    document.getElementById('bnav-'+p)?.classList.toggle('on', p === page);
+  });
+  const titles = {dash:'หน้าหลัก', plates:'รายการป้ายแดง', search:'ค้นหาป้าย', report:'รายงาน'};
+  document.getElementById('topbarTitle').textContent = titles[page] || 'ระบบจัดการป้ายแดง';
+  if (page === 'dash') renderDashboard();
+  if (page === 'search') document.getElementById('searchPageInput')?.focus();
+  if (page === 'report') renderReport();
+}
+
 
 // ══════════════════════════════
 //  DASHBOARD RENDER

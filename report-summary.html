@@ -128,7 +128,7 @@ tbody tr:hover td{background:#eef3ff;}
     <div class="screen-bar-sub">สาขา สุวินทวงศ์</div>
   </div>
   <div class="bar-right">
-    <button class="btn-back" onclick="window.parent.postMessage('closeSummary','*')">← กลับ</button>
+    <button class="btn-back" id="btnBack" onclick="window.parent.postMessage('closeSummary','*')" style="display:none;">← กลับ</button>
     <button class="btn-preview" onclick="openPreview()" id="btnPreview">📋 รายงาน</button>
     <button class="btn-print" onclick="openPreview()">🖨️ พิมพ์ / PDF</button>
   </div>
@@ -148,6 +148,15 @@ const COMPANIES = {
   KY:'บริษัท อีซูซุคิงส์ยนต์ จำกัด'
 };
 const MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+// ถ้าไม่ได้อยู่ใน iframe ให้แสดงปุ่มกลับ
+if (window.self === window.top) {
+  const btn = document.getElementById('btnBack');
+  if (btn) {
+    btn.style.display = '';
+    btn.onclick = () => window.location.replace('index.html');
+  }
+}
 
 function fmtDate(d) {
   if (!d) return '-';

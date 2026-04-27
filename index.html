@@ -104,8 +104,8 @@ body{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;backgroun
 .plate-date{font-size:12px;opacity:.65;text-align:right;}
 .plate-num{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:36px;font-weight:700;line-height:1.0;margin:2px 0;letter-spacing:.02em;text-align:center;}
 .plate-province{font-size:14px;opacity:.55;margin-bottom:2px;letter-spacing:.02em;text-align:center;line-height:1.2;}
-.plate-sc{font-size:14px;font-weight:600;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;line-height:1.35;}
-.plate-remark{font-size:12px;margin-top:1px;opacity:.55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;}
+.plate-sc{font-size:14px;font-weight:600;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;line-height:1.35;width:100%;}
+.plate-remark{font-size:12px;margin-top:1px;opacity:.55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;width:100%;}
 .plate-status{font-size:12px;font-weight:700;padding:3px 10px;border-radius:10px;display:inline-block;letter-spacing:.03em;}
 
 /* STATUS COLORS */
@@ -295,12 +295,13 @@ input[type=file]{display:none;}
 
 
 @media(max-width:640px){
-  /* plate cards — 2 คอลัมน์ พอดีจอ ไม่ล้น */
-  .plates-grid{grid-template-columns:repeat(2,1fr);gap:.4rem;}
+  /* plate cards — บังคับ 2 คอลัมน์ ไม่ล้นจอ */
+  .plates-grid{grid-template-columns:calc(50% - .2rem) calc(50% - .2rem);gap:.4rem;}
+  .plate-card{width:100%;min-width:0;overflow:hidden;box-sizing:border-box;}
   .plate-num{font-size:24px;}
   .plate-company,.plate-date{font-size:10px;}
   .plate-province{font-size:11px;}
-  .plate-sc{font-size:11px;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.3;}
+  .plate-sc{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;}
   .plate-card{padding:.4rem .45rem;min-height:auto;}
 
   /* co-cards — ลด font/padding ให้พอดีจอแคบ */
@@ -1185,9 +1186,9 @@ function render() {
       const bdr = coBdr[co] || '#ccc';
       const txt = coTxt[co] || '#555';
 
-      html += `<div style="background:${bg};border:2px solid ${bdr}40;border-radius:14px;padding:.6rem .75rem .75rem;margin-bottom:.6rem;">
+      html += `<div style="background:${bg};border:2px solid ${bdr}40;border-radius:14px;padding:.6rem .75rem .75rem;margin-bottom:.6rem;overflow:hidden;min-width:0;">
         <div style="font-size:14px;font-weight:700;color:${txt};margin-bottom:.5rem;letter-spacing:.04em;">${co} <span style="font-weight:400;opacity:.7">${coPlates.length} ป้าย</span></div>
-        <div class="plates-grid">`;
+        <div class="plates-grid" style="overflow:hidden;width:100%;">`;
 
       coPlates.forEach(p => {
         const sc = STATUS_CLASS[p.status] || 's-none';

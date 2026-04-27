@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>รายงานสรุปการใช้ป้ายแดง — สาขาสุวินทวงศ์</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun','Angsana New','TH SarabunPSK',sans-serif;background:#e8edf5;color:#1a1a1a;font-size:15px;}
+
+.screen-bar{background:#1a2d45;color:#fff;padding:.6rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+.screen-bar-title{font-size:17px;font-weight:700;}
+.screen-bar-sub{font-size:12px;opacity:.65;}
+.bar-right{display:flex;gap:.5rem;align-items:center;}
+.btn-print{background:#c0392b;color:#fff;border:none;padding:7px 18px;border-radius:7px;font-size:14px;font-family:inherit;font-weight:700;cursor:pointer;}
+.btn-print:hover{background:#a93226;}
+.btn-back{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);padding:7px 14px;border-radius:7px;font-size:13px;font-family:inherit;cursor:pointer;text-decoration:none;display:inline-block;}
+
+.loading-wrap{text-align:center;padding:3rem;color:#666;}
+.spinner{width:36px;height:36px;border:3px solid #ddd;border-top-color:#c0392b;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+#reportWrap{max-width:900px;margin:1rem auto;padding:0 1rem 2rem;}
+
+.report-section{background:#fff;border:1px solid #c8d0dc;border-radius:8px;margin-bottom:2rem;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+
+.rpt-header{text-align:center;padding:1rem 1rem .6rem;border-bottom:2px solid #e8edf5;}
+.rpt-header h2{font-size:20px;font-weight:800;color:#1a2d45;}
+.rpt-header h3{font-size:15px;font-weight:500;color:#556;}
+.rpt-meta{display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;background:#f4f7fb;border-bottom:1px solid #dde3ed;font-size:14px;font-weight:600;color:#1a2d45;}
+
+/* ── SUMMARY CARDS ── */
+.summary-wrap{padding:.6rem .875rem;background:#f8fafc;border-bottom:1px solid #dde3ed;}
+.summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;margin-bottom:.35rem;}
+.summary-row:last-child{margin-bottom:0;}
+.scard{border-radius:7px;padding:.45rem .65rem;display:flex;align-items:center;gap:.5rem;overflow:hidden;}
+.scard-icon{font-size:19px;flex-shrink:0;line-height:1;}
+.scard-body{flex:1;min-width:0;}
+.scard-label{font-size:11px;font-weight:700;line-height:1.3;}
+.scard-sub{font-size:10px;opacity:.75;line-height:1.2;}
+.scard-val{font-size:22px;font-weight:800;line-height:1;flex-shrink:0;min-width:28px;text-align:right;}
+
+.scard-stock   {background:linear-gradient(135deg,#5B2D8E,#8e44ad);color:#fff;}
+.scard-sc      {background:linear-gradient(135deg,#e07820,#f39c12);color:#fff;}
+.scard-repair  {background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;}
+.scard-admin   {background:linear-gradient(135deg,#1B6B2F,#27ae60);color:#fff;}
+.scard-customer{background:linear-gradient(135deg,#ad1457,#e91e8c);color:#fff;}
+.scard-lose    {background:linear-gradient(135deg,#455a64,#78909c);color:#fff;}
+
+/* ── TABLE ── */
+.tbl-label{padding:.4rem .875rem;font-size:12px;font-weight:700;color:#1a2d45;background:#eef3ff;border-bottom:1px solid #c8d8f8;border-top:1px solid #dde3ed;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:11px;}
+thead th{background:#1a2d45;color:#fff;padding:5px 6px;text-align:center;font-size:10.5px;white-space:nowrap;border:1px solid #2c4a6e;}
+thead th.left{text-align:left;}
+/* center ทุก td ที่ไม่ได้กำหนดพิเศษ */
+tbody td{padding:4px 6px;border:1px solid #dde3ed;vertical-align:middle;white-space:nowrap;text-align:center;}
+tbody td.left{text-align:left;}
+tbody tr:nth-child(even) td{background:#f6f9ff;}
+tbody tr:hover td{background:#eef3ff;}
+.td-num{color:#aaa;font-size:10px;}
+.td-plate{font-weight:700;font-size:15px;font-family:'Angsana New','TH SarabunPSK',sans-serif;color:#8B0000;}
+.td-overdue{color:#c0392b;font-weight:700;}
+.td-ok{color:#1a8a55;}
+
+/* ── PRINT ── */
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  @page{size:A4 portrait;margin:10mm 8mm;}
+  html,body{width:210mm;background:#fff;font-size:9px;}
+  .screen-bar{display:none!important;}
+  #reportWrap{max-width:100%;width:100%;margin:0;padding:0;}
+
+  /* แต่ละบริษัทเป็น block ต่อเนื่อง ไม่ force page break */
+  .report-section{margin-bottom:0;box-shadow:none;border:none;border-radius:0;width:100%;}
+
+  /* header+meta+summary ติดไว้กับตารางด้านบนเสมอ */
+  .rpt-header{padding:.5rem .5rem .3rem;}
+  .rpt-header h2{font-size:14px;}
+  .rpt-header h3{font-size:11px;}
+  .rpt-meta{font-size:11px;padding:.3rem .5rem;}
+  .summary-wrap{padding:.3rem .5rem;}
+  .summary-row{gap:.18rem;margin-bottom:.18rem;}
+  .scard{padding:.25rem .4rem;border-radius:4px;}
+  .scard-val{font-size:16px;}
+  .scard-label{font-size:9px;}
+  .scard-sub{font-size:8px;}
+  .scard-icon{font-size:13px;}
+  .tbl-label{font-size:9.5px;padding:.2rem .5rem;}
+
+  /* ตาราง — ใช้ thead repeat ทุกหน้าอัตโนมัติ */
+  .table-wrap{overflow:visible;}
+  table{font-size:8.5px;width:100%;table-layout:fixed;}
+  thead{display:table-header-group;} /* repeat on every page */
+  thead th{font-size:8px;padding:3px 3px;background:#1a2d45!important;color:#fff!important;}
+  tbody td{padding:2px 3px;font-size:8.5px;}
+  .td-plate{font-size:10.5px;}
+  .td-num{font-size:7.5px;}
+
+  /* คั่นระหว่างสองบริษัท */
+  .report-section+.report-section{border-top:3px solid #1a2d45;margin-top:6mm;page-break-before:always;}
+}
+</style>
+</head>
+<body>
+
+<div class="screen-bar">
+  <div>
+    <div class="screen-bar-title">รายงานสรุปการใช้ป้ายแดง</div>
+    <div class="screen-bar-sub">สาขา สุวินทวงศ์</div>
+  </div>
+  <div class="bar-right">
+    <a href="index.html" class="btn-back">← กลับ</a>
+    <button class="btn-preview" onclick="togglePreview()" id="btnPreview">📄 พรีวิว A4</button>
+    <button class="btn-print" onclick="window.print()">🖨️ พิมพ์ / PDF</button>
+  </div>
+</div>
+
+<style>
+/* Preview Mode */
+.btn-preview{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.35);padding:7px 14px;border-radius:7px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:600;}
+.btn-preview.on{background:#f39c12;border-color:#e67e22;color:#fff;}
+body.preview-mode{background:#666;}
+body.preview-mode #reportWrap{
+  max-width:210mm;
+  margin:1rem auto;
+  padding:0;
+  background:#fff;
+  box-shadow:0 4px 24px rgba(0,0,0,.5);
+}
+body.preview-mode .report-section{
+  border-radius:0;box-shadow:none;border:none;margin-bottom:0;
+}
+body.preview-mode .report-section+.report-section{
+  border-top:3px solid #1a2d45;
+  page-break-before:always;
+}
+</style>
+
+<div id="reportWrap">
+  <div class="loading-wrap">
+    <div class="spinner"></div>
+    กำลังโหลดข้อมูล...
+  </div>
+</div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby_GT-gWY7hK5y5lZ16bOQNvPipqCm38xLoa3Kqcb7nBQLxmnDCGYMVFVsAO2Svfcys/exec';
+const COMPANIES = {
+  KK:'บริษัท อีซูซุคิงส์ยนต์กรุงเทพ จำกัด',
+  KY:'บริษัท อีซูซุคิงส์ยนต์ จำกัด'
+};
+const MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+function fmtDate(d) {
+  if (!d) return '-';
+  let dt = (d instanceof Date) ? d : (() => {
+    const m = d.toString().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    return m ? new Date(+m[3],+m[2]-1,+m[1]) : new Date(d);
+  })();
+  if (!dt || isNaN(dt)) return '-';
+  return `${dt.getDate()} ${MONTHS[dt.getMonth()]} ${dt.getFullYear()+543}`;
+}
+
+function parseDate(d) {
+  if (!d) return null;
+  if (d instanceof Date) return isNaN(d)?null:d;
+  const m = d.toString().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  const dt = m ? new Date(+m[3],+m[2]-1,+m[1]) : new Date(d);
+  return isNaN(dt)?null:dt;
+}
+
+function todayThai() {
+  const d = new Date();
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()+543}`;
+}
+
+function parseStock(rows) {
+  if (rows.length < 2) return [];
+  return rows.slice(1).map(r => ({
+    licenseNo: r[0]||'',  // col A — เลขที่ใบอนุญาต
+    plateCode: r[1]||'',  // col B
+    province:  r[2]||'',  // col C
+    plateNo:   r[3]||'',  // col D
+    company:   r[5]||'',  // col F
+    status:    r[6]||'',  // col G
+    remark:    r[7]||''   // col H
+  }));
+}
+
+function parseWithdraw(rows) {
+  if (rows.length < 2) return [];
+  return rows.slice(1).map(r => ({
+    bookingDate:  r[0]||'', dateWithdraw: r[1]||'', plateNo:     r[2]||'',
+    withdrawBy:   r[3]||'', useType:      r[4]||'', chassisNo:   r[5]||'',
+    engineNo:     r[6]||'', customerName: r[7]||'', sc:          r[8]||'',
+    receiveDate:  r[9]||'', dueDate:      r[10]||'',depositDate: r[11]||'',
+    depositAmt:   r[12]||'',depositType:  r[13]||'',depositRef:  r[14]||'',
+    refundDate:   r[15]||'',refundType:   r[16]||'',refundRef:   r[17]||'',
+    transferBy:   r[18]||''
+  })).filter(w => w.plateNo);
+}
+
+function sCard(cls, icon, label, sub, val) {
+  return `<div class="scard ${cls}">
+    <div class="scard-icon">${icon}</div>
+    <div class="scard-body">
+      <div class="scard-label">${label}</div>
+      ${sub?`<div class="scard-sub">${sub}</div>`:''}
+    </div>
+    <div class="scard-val">${val}</div>
+  </div>`;
+}
+
+function renderSection(plates, withdraws, co) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const coPlates = plates.filter(p => p.company === co);
+
+  const cnt = s => coPlates.filter(p => p.status === s).length;
+  const total    = coPlates.length;
+  const stock    = cnt('Stock');
+  const admin    = cnt('Admin');
+  const sc       = cnt('SC');
+  const customer = cnt('Customer');
+  const repair   = cnt('Repair');
+  const lose     = cnt('Lose');
+  const active   = sc + customer + admin;
+  const inactive = repair + lose;
+
+  const summaryHTML = `
+  <div class="summary-wrap">
+    <div class="summary-row">
+      ${sCard('scard-stock',   '📦','Stock',   'ยังไม่เปิดให้ใช้',         stock)}
+      ${sCard('scard-admin',   '🔑','Admin',   'เปิดให้ใช้ได้',            admin)}
+      ${sCard('scard-sc',      '📋','SC',      'เบิกแต่ยังไม่ส่งมอบรถ',   sc)}
+    </div>
+    <div class="summary-row">
+      ${sCard('scard-customer','👤','Customer','เบิกออกส่งมอบรถแล้ว',     customer)}
+      ${sCard('scard-repair',  '🔧','Repair',  'ชำรุดเสียหาย',             repair)}
+      ${sCard('scard-lose',    '❌','Lose',    'สูญหาย',                   lose)}
+    </div>
+  </div>`;
+
+  const detailRows = coPlates
+    .filter(p => p.status === 'Customer')
+    .map(p => {
+      const lwd  = [...withdraws].reverse().find(w => w.plateNo === p.plateNo);
+      const due  = parseDate(lwd?.dueDate);
+      const diff = due ? Math.floor((today - due) / 86400000) : null;
+      return { plate:p, w:lwd||{}, diff };
+    })
+    .sort((a, b) => {
+      const da = parseDate(a.w.receiveDate)||parseDate(a.w.dateWithdraw);
+      const db = parseDate(b.w.receiveDate)||parseDate(b.w.dateWithdraw);
+      return (da?.getTime()||0)-(db?.getTime()||0);
+    });
+
+  const tbodyHTML = detailRows.length === 0
+    ? `<tr><td colspan="10" style="text-align:center;padding:1rem;color:#aaa;">ไม่มีป้ายสถานะ Customer</td></tr>`
+    : detailRows.map(({plate,w,diff},i) => {
+        const badge = diff===null ? '-'
+          : diff>0 ? `<span class="td-overdue">เกิน ${diff} วัน</span>`
+          : `<span class="td-ok">ปกติ</span>`;
+        return `<tr>
+          <td class="td-num">${i+1}</td>
+          <td>${plate.licenseNo||'-'}</td>
+          <td class="td-plate">${plate.plateCode}</td>
+          <td>${w.chassisNo||'-'}</td>
+          <td>${w.engineNo||'-'}</td>
+          <td class="left">${w.customerName||'-'}</td>
+          <td>${fmtDate(w.receiveDate)}</td>
+          <td>${fmtDate(w.dueDate)}</td>
+          <td>${badge}</td>
+          <td class="left">${w.sc||w.withdrawBy||'-'}</td>
+        </tr>`;
+      }).join('');
+
+  return `
+  <div class="report-section">
+    <div class="rpt-header">
+      <h2>รายงานการใช้ป้ายแดง</h2>
+      <h3>( สาขา สุวินทวงศ์ )</h3>
+    </div>
+    <div class="rpt-meta">
+      <span>${COMPANIES[co]||co}</span>
+      <span>ณ วันที่ ${todayThai()}</span>
+    </div>
+    ${summaryHTML}
+    <div class="tbl-label">รายละเอียดป้ายแดงที่ลูกค้า ( เบิกออกส่งมอบรถแล้ว ) — ${detailRows.length} รายการ</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>เลขที่<br>ใบอนุญาต</th>
+            <th>ป้ายแดง</th>
+            <th>หมายเลขตัวรถ</th>
+            <th>หมายเลขเครื่องยนต์</th>
+            <th class="left">ชื่อ-นามสกุล ผู้ขับรถ</th>
+            <th>วันที่รับรถ</th>
+            <th>วันที่คืนป้าย<br><span style="font-size:7.5px;font-weight:400;">(30 วัน นับจากวันรับรถ)</span></th>
+            <th>สถานะ<br>การคืน</th>
+            <th class="left">SC</th>
+          </tr>
+        </thead>
+        <tbody>${tbodyHTML}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function togglePreview() {
+  const on = document.body.classList.toggle('preview-mode');
+  const btn = document.getElementById('btnPreview');
+  btn.classList.toggle('on', on);
+  btn.textContent = on ? '✕ ปิดพรีวิว' : '📄 พรีวิว A4';
+  if (on) window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function init() {
+  try {
+    const [sr,wr] = await Promise.all([
+      fetch(GAS_URL+'?action=getStock'),
+      fetch(GAS_URL+'?action=getWithdraw')
+    ]);
+    const [sd,wd] = await Promise.all([sr.json(),wr.json()]);
+    const plates    = parseStock(sd.values||[]);
+    const withdraws = parseWithdraw(wd.values||[]);
+    document.getElementById('reportWrap').innerHTML =
+      ['KK','KY'].map(co => renderSection(plates,withdraws,co)).join('');
+  } catch(e) {
+    document.getElementById('reportWrap').innerHTML =
+      `<div class="loading-wrap" style="color:#c0392b;">โหลดข้อมูลไม่สำเร็จ: ${e.message}</div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

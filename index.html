@@ -868,18 +868,19 @@ function renderDashboard() {
     })
     .slice(0, 5);
   document.getElementById('dashRecentList').innerHTML = recent.length ? recent.map(w => {
-    const plate = plates.find(p => p.plateNo === w.plateNo);
+    const plate    = plates.find(p => p.plateNo === w.plateNo);
     const statusCls = STATUS_CLASS[plate?.status] || 's-none';
-    const custName = w.customerName || '';
+    const custName  = w.customerName || '';
+    const relDate   = w.receiveDate || w.dateWithdraw || '';
     return `<div class="recent-item" onclick="openPlate('${w.plateNo}')">
       <div class="recent-plate-wrap">
         <div class="recent-plate ${statusCls}" style="border-radius:8px;padding:4px 10px;">${plate?.plateCode||w.plateNo}</div>
         <span style="font-size:11px;color:var(--muted);">${plate?.company||''}</span>
       </div>
       <div class="recent-info">
-        <div style="font-size:14px;font-weight:700;color:#1a2d45;">${plate?.status||'?'}</div>
-        <div class="recent-detail">SC: ${w.withdrawBy||'-'} · ${fmtDateShort(w.dateWithdraw)}</div>
+        <div class="recent-detail" style="color:#1a2d45;font-weight:600;">SC: ${w.withdrawBy||'-'}</div>
         ${custName?`<div class="recent-detail">ลูกค้า: ${custName}</div>`:''}
+        ${relDate?`<div class="recent-detail">วันปล่อยรถ: ${fmtDateShort(relDate)}</div>`:''}
       </div>
     </div>`;
   }).join('') : '<div style="color:var(--muted);font-size:14px;padding:.5rem 0;">ไม่มีข้อมูล</div>';

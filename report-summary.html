@@ -128,7 +128,7 @@ tbody tr:hover td{background:#eef3ff;}
     <div class="screen-bar-sub">สาขา สุวินทวงศ์</div>
   </div>
   <div class="bar-right">
-    <button class="btn-back" onclick="history.back()">← กลับ</button>
+    <button class="btn-back" onclick="window.parent.postMessage('closeSummary','*')">← กลับ</button>
     <button class="btn-preview" onclick="openPreview()" id="btnPreview">📋 รายงาน</button>
     <button class="btn-print" onclick="openPreview()">🖨️ พิมพ์ / PDF</button>
   </div>

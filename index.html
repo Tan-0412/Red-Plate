@@ -297,10 +297,11 @@ input[type=file]{display:none;}
 @media(max-width:640px){
   /* plate cards — 2 คอลัมน์ พอดีจอ ไม่ล้น */
   .plates-grid{grid-template-columns:repeat(2,1fr);gap:.4rem;}
-  .plate-num{font-size:26px;}
-  .plate-company,.plate-date{font-size:11px;}
-  .plate-province,.plate-sc{font-size:11px;}
-  .plate-card{padding:.4rem .5rem;min-height:110px;}
+  .plate-num{font-size:24px;}
+  .plate-company,.plate-date{font-size:10px;}
+  .plate-province{font-size:11px;}
+  .plate-sc{font-size:11px;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.3;}
+  .plate-card{padding:.4rem .45rem;min-height:auto;}
 
   /* co-cards — ลด font/padding ให้พอดีจอแคบ */
   .co-summary-block{padding:.55rem;}

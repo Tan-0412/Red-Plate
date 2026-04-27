@@ -406,7 +406,14 @@ input[type=file]{display:none;}
   <p>กำลังโหลดข้อมูล...</p>
 </div>
 
-<!-- APP -->
+<!-- SUMMARY MODAL -->
+<div id="summaryModal" style="display:none;position:fixed;inset:0;z-index:999;flex-direction:column;background:#000;">
+  <div style="background:#1a2d45;color:#fff;padding:.5rem 1rem;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+    <span style="font-size:15px;font-weight:700;">📋 รายงานสรุปการใช้ป้ายแดง</span>
+    <button onclick="closeSummaryModal()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);padding:5px 14px;border-radius:6px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;">✕ กลับ</button>
+  </div>
+  <iframe id="summaryFrame" src="" style="flex:1;border:none;width:100%;background:#fff;" allowfullscreen></iframe>
+</div>
 <div id="app" class="hidden">
 
   <div class="topbar">
@@ -434,9 +441,9 @@ input[type=file]{display:none;}
     <button class="bnav-btn" id="bnav-report" onclick="setPage('report')">
       <span class="bnav-icon">📊</span>รายงาน
     </button>
-    <a class="bnav-btn" href="report-summary.html" target="_blank" style="text-decoration:none;">
+    <button class="bnav-btn" id="bnav-summary" onclick="openSummaryModal()">
       <span class="bnav-icon">📋</span>สรุป
-    </a>
+    </button>
     <button class="bnav-btn" id="bnav-search" onclick="setPage('search')">
       <span class="bnav-icon">🔍</span>ค้นหา
     </button>
@@ -606,6 +613,21 @@ const STATUS_GROUPS = {
   active:   [{key:'Admin',label:'Admin'},{key:'SC',label:'SC'},{key:'Customer',label:'Customer'}],
   inactive: [{key:'Stock',label:'Stock'},{key:'Repair',label:'Repair'},{key:'Lose',label:'Lose'}]
 };
+
+function openSummaryModal() {
+  const modal = document.getElementById('summaryModal');
+  const frame = document.getElementById('summaryFrame');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  if (!frame.src || frame.src === window.location.href) {
+    frame.src = 'report-summary.html';
+  }
+}
+
+function closeSummaryModal() {
+  document.getElementById('summaryModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
 
 // ══════════════════════════════
 //  PAGE NAVIGATION
@@ -846,7 +868,7 @@ function renderDashboard() {
           <span class="co-summary-short">${info.short}</span>
           <span class="co-summary-name">${info.name}</span>
         </div>
-        <a href="report-summary.html" target="_blank" class="btn-co-print">🖨️ พิมพ์ / PDF</a>
+        <button onclick="openSummaryModal()" class="btn-co-print">🖨️ พิมพ์ / PDF</button>
       </div>
       <div class="co-cards">
         ${coSummaryCard('co-c-stock',   '📦','Stock',   'ยังไม่เปิดให้ใช้',       stock)}

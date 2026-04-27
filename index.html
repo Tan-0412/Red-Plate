@@ -629,6 +629,11 @@ function closeSummaryModal() {
   document.body.style.overflow = '';
 }
 
+// รับ message จาก iframe report-summary
+window.addEventListener('message', function(e) {
+  if (e.data === 'closeSummary') closeSummaryModal();
+});
+
 // ══════════════════════════════
 //  PAGE NAVIGATION
 // ══════════════════════════════

@@ -1219,7 +1219,7 @@ function render() {
 
       coPlates.forEach(p => {
         const sc = STATUS_CLASS[p.status] || 's-none';
-        const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo);
+        const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo && !w.refundDate);
         const scName = lwd?.withdrawBy || '';
         let dateLabel = '';
         if (p.status === 'Customer' && lwd?.receiveDate) dateLabel = fmtDateShort(lwd.receiveDate);
@@ -1247,7 +1247,7 @@ function render() {
         <div class="plates-grid">`;
       coPlates.forEach(p => {
         const sc = STATUS_CLASS[p.status] || 's-none';
-        const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo);
+        const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo && !w.refundDate);
         const scName = lwd?.withdrawBy || '';
         let dateLabel = '';
         if (p.status === 'Customer' && lwd?.receiveDate) dateLabel = fmtDateShort(lwd.receiveDate);

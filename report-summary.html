@@ -105,37 +105,33 @@ tbody tr:hover td{background:#eef3ff;}
 </head>
 <body>
 
-<div class="screen-bar">
+<!-- A4 Preview Modal -->
+<div id="previewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;flex-direction:column;align-items:center;">
+  <div style="background:#333;width:100%;padding:.5rem 1rem;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+    <span style="color:#fff;font-size:14px;font-weight:700;">📄 พรีวิว A4 — กด พิมพ์/PDF เพื่อบันทึก</span>
+    <div style="display:flex;gap:.5rem;">
+      <button onclick="printFromPreview()" style="background:#c0392b;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:13px;font-family:inherit;font-weight:700;cursor:pointer;">🖨️ พิมพ์ / PDF</button>
+      <button onclick="closePreview()" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);padding:6px 14px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;">✕ ปิด</button>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;width:100%;display:flex;justify-content:center;padding:1rem 0;gap:1rem;flex-wrap:nowrap;align-items:flex-start;" id="previewScroll">
+    <!-- iframe จะถูก inject ที่นี่ -->
+  </div>
+</div>
   <div>
     <div class="screen-bar-title">รายงานสรุปการใช้ป้ายแดง</div>
     <div class="screen-bar-sub">สาขา สุวินทวงศ์</div>
   </div>
   <div class="bar-right">
     <a href="index.html" class="btn-back">← กลับ</a>
-    <button class="btn-preview" onclick="togglePreview()" id="btnPreview">📄 พรีวิว A4</button>
+    <button class="btn-preview" onclick="openPreview()" id="btnPreview">📄 พรีวิว A4</button>
     <button class="btn-print" onclick="window.print()">🖨️ พิมพ์ / PDF</button>
   </div>
 </div>
 
 <style>
-/* Preview Mode */
 .btn-preview{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.35);padding:7px 14px;border-radius:7px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:600;}
-.btn-preview.on{background:#f39c12;border-color:#e67e22;color:#fff;}
-body.preview-mode{background:#666;}
-body.preview-mode #reportWrap{
-  max-width:210mm;
-  margin:1rem auto;
-  padding:0;
-  background:#fff;
-  box-shadow:0 4px 24px rgba(0,0,0,.5);
-}
-body.preview-mode .report-section{
-  border-radius:0;box-shadow:none;border:none;margin-bottom:0;
-}
-body.preview-mode .report-section+.report-section{
-  border-top:3px solid #1a2d45;
-  page-break-before:always;
-}
+.btn-preview:hover{background:rgba(255,255,255,.25);}
 </style>
 
 <div id="reportWrap">
@@ -310,12 +306,92 @@ function renderSection(plates, withdraws, co) {
   </div>`;
 }
 
-function togglePreview() {
-  const on = document.body.classList.toggle('preview-mode');
-  const btn = document.getElementById('btnPreview');
-  btn.classList.toggle('on', on);
-  btn.textContent = on ? '✕ ปิดพรีวิว' : '📄 พรีวิว A4';
-  if (on) window.scrollTo({top:0,behavior:'smooth'});
+function printFromPreview() {
+  const iframe = document.querySelector('#previewScroll iframe');
+  if (iframe) {
+    iframe.contentWindow.print();
+  } else {
+    window.print();
+  }
+}
+
+function openPreview() {
+  const modal = document.getElementById('previewModal');
+  const scroll = document.getElementById('previewScroll');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // สร้าง iframe ที่โหลดหน้านี้เองแต่ใส่ query ?print=1
+  if (!scroll.querySelector('iframe')) {
+    const iframe = document.createElement('iframe');
+    // ส่ง HTML ปัจจุบัน (พร้อมข้อมูล) เข้า iframe โดยตรง
+    iframe.style.cssText = 'border:none;background:#fff;box-shadow:0 0 32px rgba(0,0,0,.5);flex-shrink:0;display:block;';
+    iframe.style.width  = '210mm';
+    iframe.style.height = '297mm';
+    iframe.style.transform = 'scale(1)';
+    iframe.style.transformOrigin = 'top center';
+    iframe.scrolling = 'no';
+
+    scroll.innerHTML = '';
+    scroll.appendChild(iframe);
+
+    // ปรับ scale ตาม viewport
+    function scaleFrame() {
+      const vw = scroll.clientWidth;
+      const fw = 794; // 210mm in px ~= 794
+      const scale = Math.min(1, (vw - 32) / fw);
+      iframe.style.transform = `scale(${scale})`;
+      iframe.style.marginTop = `${(297 * scale - 297) / 2 * 3.78}px`; // ~3.78px/mm
+      scroll.style.height = `calc(100% )`;
+    }
+
+    // inject HTML ลง iframe
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(`<!DOCTYPE html><html lang="th"><head>
+      <meta charset="UTF-8">
+      <style>
+        *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+        body{font-family:'Sarabun','Angsana New','TH SarabunPSK',sans-serif;background:#fff;font-size:9px;width:210mm;overflow:hidden;}
+        ${Array.from(document.styleSheets).map(ss=>{try{return Array.from(ss.cssRules).map(r=>r.cssText).join('');}catch(e){return '';}}).join('')}
+        .screen-bar,.loading-wrap,.spinner,.btn-print,.btn-preview,.btn-back,.screen-bar-title,.screen-bar-sub,.bar-right{display:none!important;}
+        #reportWrap{max-width:100%;width:210mm;margin:0;padding:0;}
+        .report-section{margin-bottom:0;box-shadow:none;border:1px solid #bbb;border-radius:0;}
+        .report-section+.report-section{border-top:3px solid #1a2d45;margin-top:4mm;}
+        table{font-size:8.5px;width:100%;table-layout:fixed;}
+        thead th{font-size:8px;padding:3px;background:#1a2d45!important;color:#fff!important;}
+        tbody td{padding:2px 3px;font-size:8.5px;}
+        .td-plate{font-size:10.5px;}
+        .scard{padding:.25rem .4rem;border-radius:4px;}
+        .scard-val{font-size:16px;}
+        .scard-label{font-size:9px;}
+        .scard-sub{font-size:8px;}
+        .scard-icon{font-size:13px;}
+        .summary-row{gap:.18rem;margin-bottom:.18rem;}
+        .summary-wrap{padding:.3rem .5rem;}
+        .rpt-header{padding:.5rem .5rem .3rem;}
+        .rpt-header h2{font-size:14px;}
+        .rpt-header h3{font-size:11px;}
+        .rpt-meta{font-size:11px;padding:.3rem .5rem;}
+        .tbl-label{font-size:9.5px;padding:.2rem .5rem;}
+      </style>
+      <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+    </head><body>
+      <div id="reportWrap">${document.getElementById('reportWrap').innerHTML}</div>
+    </body></html>`);
+    doc.close();
+
+    setTimeout(scaleFrame, 300);
+    window.addEventListener('resize', scaleFrame);
+  }
+}
+
+function closePreview() {
+  const modal = document.getElementById('previewModal');
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+  // clear iframe เพื่อ refresh ใหม่ทุกครั้ง
+  document.getElementById('previewScroll').innerHTML = '';
 }
 
 async function init() {

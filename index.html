@@ -2,8 +2,22 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ระบบจัดการป้ายแดง — สาขาสุวินทวงศ์</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a2d45">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ป้ายแดง">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+<link rel="apple-touch-icon" sizes="144x144" href="icon-144.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -21,7 +35,10 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:18px;overflow-x:hidden;}
-#app{padding-bottom:60px;overflow-x:hidden;max-width:100vw;}
+/* PWA safe area — iPhone notch / Dynamic Island */
+.topbar{padding-top:max(.75rem, env(safe-area-inset-top));}
+.bottom-nav{padding-bottom:max(0px, env(safe-area-inset-bottom));}
+#app{padding-bottom:calc(60px + env(safe-area-inset-bottom));overflow-x:hidden;max-width:100vw;}
 
 /* LOGIN */
 .login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;align-items:center;justify-content:center;z-index:1000;overflow:hidden;}
@@ -405,7 +422,7 @@ input[type=file]{display:none;}
   <!-- ════ PLATES PAGE ════ -->
   <div id="platePage">
 
-    <!-- FILTER BAR — บรรทัดเดียว sticky ติดบน -->
+    <!-- FILTER BAR — sticky ติดบน -->
     <div class="filterbar" style="position:sticky;top:56px;z-index:95;flex-direction:row;flex-wrap:wrap;align-items:center;gap:.5rem;padding:.5rem .75rem;background:#fff;border-bottom:1px solid var(--gray-200);box-shadow:0 2px 4px rgba(0,0,0,.06);">
       <span class="filter-label">บริษัท</span>
       <div class="filter-chips">
@@ -413,9 +430,12 @@ input[type=file]{display:none;}
         <button class="fbtn" id="fb-co-KK" onclick="setFilter('company','KK',this)">KK</button>
         <button class="fbtn" id="fb-co-KY" onclick="setFilter('company','KY',this)">KY</button>
       </div>
+      <select id="fb-sc" onchange="render()" style="height:34px;border:1.5px solid var(--gray-200);border-radius:20px;padding:0 10px;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:15px;outline:none;background:#fff;cursor:pointer;">
+        <option value="">SC ทั้งหมด</option>
+      </select>
       <div class="search-box" style="flex:1;min-width:140px;">
         <span class="search-icon">🔍</span>
-        <input class="search-input" type="text" placeholder="ค้นหาทะเบียน..." id="searchInput" oninput="render()">
+        <input class="search-input" type="text" placeholder="ค้นหาทะเบียน / ชื่อลูกค้า..." id="searchInput" oninput="render()">
       </div>
       <button class="btn-clear" onclick="clearFilters()">✕ ล้าง</button>
     </div>
@@ -438,14 +458,28 @@ input[type=file]{display:none;}
   <div id="reportPage">
     <div id="rpt-filter-bar" style="padding:.75rem 1rem;background:#fff;border-bottom:1px solid var(--gray-200);position:sticky;top:56px;z-index:90;">
 
-      <!-- แท็บ SC / Customer / เกินกำหนด -->
-      <div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;">
-        <button id="rpt-tab-sc" class="fbtn on" onclick="setReportTab('SC')">📋 SC</button>
-        <button id="rpt-tab-cu" class="fbtn" onclick="setReportTab('Customer')">👤 Customer</button>
-        <button id="rpt-tab-ov" class="fbtn" onclick="setReportTab('Overdue')" style="border-color:#c0392b;color:#c0392b;">⚠️ เกินกำหนดคืน</button>
+      <!-- ตัวกรองหลัก: สถานะ + SC -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem;">
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">สถานะป้าย</div>
+          <select id="rpt-status-sel" onchange="onRptStatusChange()" class="rpt-date-input" style="height:36px;">
+            <option value="Stock">📦 Stock</option>
+            <option value="Admin">🔑 Admin</option>
+            <option value="SC">📋 SC</option>
+            <option value="Customer">👤 Customer</option>
+            <option value="Repair">🔧 Repair</option>
+            <option value="Lose">❌ Lose</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">SC / ผู้เบิก</div>
+          <select id="rpt-sc-sel" onchange="renderReport()" class="rpt-date-input" style="height:36px;">
+            <option value="">ทั้งหมด</option>
+          </select>
+        </div>
       </div>
 
-      <!-- ตัวกรอง -->
+      <!-- ตัวกรองวันที่เบิก -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem;">
         <div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">วันที่เบิก (เริ่ม)</div>
@@ -455,19 +489,12 @@ input[type=file]{display:none;}
           <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">วันที่เบิก (สิ้นสุด)</div>
           <input type="date" id="rpt-wd-to" class="rpt-date-input" oninput="renderReport()">
         </div>
-        <div id="rpt-due-group" style="display:none;">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">ครบกำหนดคืน (เริ่ม)</div>
-          <input type="date" id="rpt-due-from" class="rpt-date-input" oninput="renderReport()">
-        </div>
-        <div id="rpt-due-group2" style="display:none;">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">ครบกำหนดคืน (สิ้นสุด)</div>
-          <input type="date" id="rpt-due-to" class="rpt-date-input" oninput="renderReport()">
-        </div>
       </div>
 
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem;">
         <span id="rpt-count" style="font-size:14px;color:var(--muted);">— รายการ</span>
-        <div style="display:flex;gap:.4rem;">
+        <div style="display:flex;gap:.4rem;align-items:center;">
+          <button id="rpt-btn-ov" onclick="toggleOverdue()" style="height:32px;font-size:13px;padding:0 12px;border-radius:20px;border:1.5px solid #c0392b;background:#fff;color:#c0392b;cursor:pointer;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-weight:600;transition:all .15s;">⚠️ เกินกำหนด</button>
           <button class="fbtn" onclick="clearReportFilters()" style="font-size:13px;padding:4px 10px;">✕ ล้าง</button>
           <button class="btn" onclick="printReport()" style="height:32px;font-size:14px;padding:0 14px;background:var(--red);">🖨️ พิมพ์ / PDF</button>
         </div>
@@ -540,68 +567,69 @@ const STATUS_GROUPS = {
 let reportTab = 'SC';
 let reportOverdueOnly = false;
 
-function setReportTab(tab) {
-  reportOverdueOnly = (tab === 'Overdue');
-  reportTab = reportOverdueOnly ? 'Customer' : tab;
+function onRptStatusChange() {
+  reportTab = document.getElementById('rpt-status-sel')?.value || 'SC';
+  // reset overdue เมื่อเปลี่ยน tab
+  reportOverdueOnly = false;
+  updateOverdueBtn();
+  renderReport();
+}
 
-  document.getElementById('rpt-tab-sc').classList.toggle('on', tab === 'SC');
-  document.getElementById('rpt-tab-cu').classList.toggle('on', tab === 'Customer');
+function toggleOverdue() {
+  reportOverdueOnly = !reportOverdueOnly;
+  updateOverdueBtn();
+  renderReport();
+}
 
-  // ปุ่มเกินกำหนด — สีแดงเมื่อ active
-  const ovBtn = document.getElementById('rpt-tab-ov');
-  ovBtn.classList.toggle('on', reportOverdueOnly);
+function updateOverdueBtn() {
+  const btn = document.getElementById('rpt-btn-ov');
+  if (!btn) return;
   if (reportOverdueOnly) {
-    ovBtn.style.background = 'var(--red)';
-    ovBtn.style.color = '#fff';
-    ovBtn.style.borderColor = 'var(--red)';
+    btn.style.background = '#c0392b';
+    btn.style.color = '#fff';
   } else {
-    ovBtn.style.background = '';
-    ovBtn.style.color = '#c0392b';
-    ovBtn.style.borderColor = '#c0392b';
+    btn.style.background = '#fff';
+    btn.style.color = '#c0392b';
   }
+}
 
-  // due date กรอง — แสดงเฉพาะ Customer / Overdue
-  const showDue = (tab === 'Customer' || tab === 'Overdue');
-  document.getElementById('rpt-due-group').style.display  = showDue ? '' : 'none';
-  document.getElementById('rpt-due-group2').style.display = showDue ? '' : 'none';
+function setReportTab(tab) {
+  reportTab = tab;
+  const sel = document.getElementById('rpt-status-sel');
+  if (sel) sel.value = tab;
   renderReport();
 }
 
 function clearReportFilters() {
-  ['rpt-wd-from','rpt-wd-to','rpt-due-from','rpt-due-to'].forEach(id => {
+  ['rpt-wd-from','rpt-wd-to'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  const scSel = document.getElementById('rpt-sc-sel');
+  if (scSel) scSel.value = '';
+  reportOverdueOnly = false;
+  updateOverdueBtn();
   renderReport();
 }
 
 function renderReport() {
   const wdFrom  = document.getElementById('rpt-wd-from')?.value;
   const wdTo    = document.getElementById('rpt-wd-to')?.value;
-  const dueFrom = document.getElementById('rpt-due-from')?.value;
-  const dueTo   = document.getElementById('rpt-due-to')?.value;
   const today   = new Date(); today.setHours(0,0,0,0);
   const isCust  = (reportTab === 'Customer');
+  const scFilter = document.getElementById('rpt-sc-sel')?.value || '';
 
   let rows = withdraws.filter(w => {
     const plate = plates.find(p => p.plateNo === w.plateNo);
     if (!plate || plate.status !== reportTab) return false;
     if (!w.dateWithdraw) return false;
+    if (scFilter && w.withdrawBy?.trim() !== scFilter) return false;
 
-    // กรองวันที่เบิก
     const wd = parseDateStr(w.dateWithdraw);
     if (wdFrom && wd < new Date(wdFrom)) return false;
     if (wdTo   && wd > new Date(wdTo + 'T23:59:59')) return false;
 
-    // กรองวันครบกำหนด (Customer)
-    if (isCust && w.dueDate) {
-      const due = parseDateStr(w.dueDate);
-      if (dueFrom && due < new Date(dueFrom)) return false;
-      if (dueTo   && due > new Date(dueTo + 'T23:59:59')) return false;
-    }
-
-    // กรองเฉพาะเกินกำหนด
-    if (reportOverdueOnly) {
+    if (reportOverdueOnly && isCust) {
       if (!w.dueDate) return false;
       const due = parseDateStr(w.dueDate);
       if (!due || due >= today) return false;
@@ -622,7 +650,7 @@ function renderReport() {
   // thead
   const thead = document.getElementById('rpt-thead');
   thead.innerHTML = `<tr>
-    <th>#</th>
+    <th style="width:30px">#</th>
     <th>ทะเบียน</th>
     <th>บริษัท</th>
     <th>วันที่เบิก</th>
@@ -631,7 +659,8 @@ function renderReport() {
     <th>หมายเหตุ</th>
   </tr>`;
 
-  // tbody
+  // tbody — ทุก td white-space:nowrap ให้อยู่บรรทัดเดียว
+  const tdStyle = 'white-space:nowrap;';
   const tbody = document.getElementById('rpt-tbody');
   tbody.innerHTML = rows.map((w, i) => {
     const plate = plates.find(p => p.plateNo === w.plateNo);
@@ -646,36 +675,31 @@ function renderReport() {
         : `<span style="color:#1a8a55;">ปกติ</span>`;
     }
     return `<tr>
-      <td style="color:var(--muted);font-size:12px;">${i+1}</td>
-      <td style="font-weight:700;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:18px;color:var(--${reportTab.toLowerCase()});">${plateCode}</td>
-      <td>${co}</td>
-      <td>${fmtDateShort(w.dateWithdraw)}</td>
-      <td>${w.withdrawBy||'-'}</td>
-      ${isCust ? `<td>${w.customerName||'-'}</td><td>${fmtDateShort(w.receiveDate)}</td><td>${fmtDateShort(w.dueDate)}</td><td>${dueBadge}</td>` : ''}
-      <td style="color:var(--muted);font-size:13px;">${w.remark||''}</td>
+      <td style="${tdStyle}color:var(--muted);font-size:12px;">${i+1}</td>
+      <td style="${tdStyle}font-weight:700;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:18px;color:var(--${reportTab.toLowerCase()});">${plateCode}</td>
+      <td style="${tdStyle}">${co}</td>
+      <td style="${tdStyle}">${fmtDateShort(w.dateWithdraw)}</td>
+      <td style="${tdStyle}">${w.withdrawBy||'-'}</td>
+      ${isCust ? `<td style="${tdStyle}">${w.customerName||'-'}</td><td style="${tdStyle}">${fmtDateShort(w.receiveDate)}</td><td style="${tdStyle}">${fmtDateShort(w.dueDate)}</td><td style="${tdStyle}">${dueBadge}</td>` : ''}
+      <td style="${tdStyle}color:var(--muted);font-size:13px;">${w.remark||''}</td>
     </tr>`;
   }).join('');
 
   // อัพเดท print header
-  updatePrintHeader(wdFrom, wdTo, dueFrom, dueTo);
+  updatePrintHeader(wdFrom, wdTo);
 }
 
-function updatePrintHeader(wdFrom, wdTo, dueFrom, dueTo) {
-  // subtitle
-  let subtitle = reportTab === 'SC' ? 'สถานะ SC' : 'สถานะ Customer';
+function updatePrintHeader(wdFrom, wdTo) {
+  const scFilter = document.getElementById('rpt-sc-sel')?.value || '';
+  let subtitle = `สถานะ ${reportTab}`;
   if (reportOverdueOnly) subtitle += ' (เกินกำหนดคืน)';
+  if (scFilter) subtitle += ` · SC: ${scFilter}`;
   document.getElementById('rpt-print-subtitle').textContent = subtitle;
 
-  // date range description
   const parts = [];
   if (wdFrom || wdTo) {
     let s = 'วันที่เบิก ตั้งแต่ ' + (wdFrom ? fmtDateShort(new Date(wdFrom)) : '—');
     s += ' ถึง ' + (wdTo ? fmtDateShort(new Date(wdTo)) : '—');
-    parts.push(s);
-  }
-  if ((dueFrom || dueTo) && reportTab === 'Customer') {
-    let s = 'วันครบกำหนดคืน ตั้งแต่ ' + (dueFrom ? fmtDateShort(new Date(dueFrom)) : '—');
-    s += ' ถึง ' + (dueTo ? fmtDateShort(new Date(dueTo)) : '—');
     parts.push(s);
   }
   document.getElementById('rpt-print-range').textContent = parts.join('  |  ');
@@ -828,21 +852,47 @@ function parseDateStr(str) {
 function renderSearchPage() {
   const q = (document.getElementById('searchPageInput')?.value||'').toLowerCase().trim();
   const res = document.getElementById('searchPageResults');
-  if (!q) { res.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:16px;">พิมพ์เพื่อค้นหาป้ายทะเบียน</div>'; return; }
-  const found = plates.filter(p =>
-    p.plateNo.toLowerCase().includes(q) || p.plateCode.toLowerCase().includes(q)
-  );
+  if (!q) { res.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:16px;">พิมพ์เพื่อค้นหาทะเบียน / ชื่อลูกค้า</div>'; return; }
+
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const found = plates.filter(p => {
+    const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo);
+    const custName = (lwd?.customerName || '').toLowerCase();
+    return p.plateNo.toLowerCase().includes(q)
+        || p.plateCode.toLowerCase().includes(q)
+        || custName.includes(q);
+  });
+
   if (!found.length) { res.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:16px;">ไม่พบป้ายที่ตรงกัน</div>'; return; }
+
   const sc_class = {Admin:'s-admin',SC:'s-sc',Customer:'s-customer',Stock:'s-stock',Repair:'s-repair',Lose:'s-lose'};
-  res.innerHTML = found.slice(0,20).map(p => {
-    const lwd = [...withdraws].reverse().find(w=>w.plateNo===p.plateNo);
+
+  res.innerHTML = found.slice(0,30).map(p => {
+    const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo);
+    const isCust = p.status === 'Customer';
+    let dueBadge = '';
+    if (isCust && lwd?.dueDate) {
+      const due = parseDateStr(lwd.dueDate);
+      const diff = due ? Math.floor((today - due) / 86400000) : 0;
+      dueBadge = diff > 0
+        ? `<span style="color:var(--red);font-weight:700;font-size:13px;"> · เกิน ${diff} วัน</span>`
+        : `<span style="color:#1a8a55;font-size:13px;"> · ปกติ</span>`;
+    }
     return `<div class="search-result-item" onclick="openPlate('${p.plateNo}')">
-      <div class="sr-plate" style="color:var(--${p.status?.toLowerCase()||'muted'})">${p.plateCode}</div>
-      <div class="sr-info">
-        <div style="font-size:15px;font-weight:700;">${p.province||''}</div>
-        <div class="sr-detail">${p.status} · ${lwd?.withdrawBy||p.company||''}</div>
+      <div style="min-width:90px;">
+        <div class="sr-plate" style="color:var(--${(p.status||'').toLowerCase()||'muted'});font-size:22px;font-weight:700;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;">${p.plateCode}</div>
+        <div style="font-size:13px;color:var(--muted);">${p.province||''}</div>
+        <span class="plate-status ${sc_class[p.status]||'s-none'}" style="font-size:12px;padding:2px 8px;margin-top:3px;display:inline-block;">${p.status||'?'}</span>
       </div>
-      <span class="plate-status ${sc_class[p.status]||'s-none'}" style="font-size:12px;padding:3px 8px;">${p.status||'?'}</span>
+      <div class="sr-info" style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:600;">บริษัท : ${p.company||'-'}</div>
+        ${lwd?.withdrawBy ? `<div style="font-size:13px;color:var(--muted);">SC: ${lwd.withdrawBy}</div>` : ''}
+        ${lwd?.customerName ? `<div style="font-size:13px;color:var(--muted);">ลูกค้า: ${lwd.customerName}</div>` : ''}
+        ${lwd?.dateWithdraw ? `<div style="font-size:13px;color:var(--muted);">เบิก: ${fmtDateShort(lwd.dateWithdraw)}</div>` : ''}
+        ${isCust && lwd?.receiveDate ? `<div style="font-size:13px;color:var(--muted);">รับรถ: ${fmtDateShort(lwd.receiveDate)}</div>` : ''}
+        ${isCust && lwd?.dueDate ? `<div style="font-size:13px;">ครบกำหนดคืนป้าย: ${fmtDateShort(lwd.dueDate)}${dueBadge}</div>` : ''}
+      </div>
     </div>`;
   }).join('');
 }
@@ -892,6 +942,8 @@ async function loadData() {
     ]);
     plates = parseStock(stockData.values || []);
     withdraws = parseWithdraw(wdData.values || []);
+    populateScDropdown();
+    populateRptScDropdown();
     render();
     renderDashboard();
     setSyncState('ok', 'อัปเดตแล้ว ' + nowTime());
@@ -960,9 +1012,42 @@ function clearFilters() {
   document.getElementById('searchInput').value = '';
   document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
   document.getElementById('fb-co-ALL')?.classList.add('on');
+  const scSel = document.getElementById('fb-sc');
+  if (scSel) scSel.value = '';
   render();
 }
 
+// populate SC dropdown ในหน้าป้าย
+function populateScDropdown() {
+  const sel = document.getElementById('fb-sc');
+  if (!sel) return;
+  const scSet = new Set();
+  withdraws.forEach(w => { if (w.withdrawBy) scSet.add(w.withdrawBy.trim()); });
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">SC ทั้งหมด</option>';
+  [...scSet].sort().forEach(sc => {
+    const o = document.createElement('option');
+    o.value = sc; o.textContent = sc;
+    sel.appendChild(o);
+  });
+  sel.value = cur;
+}
+
+// populate SC dropdown ในหน้ารายงาน
+function populateRptScDropdown() {
+  const sel = document.getElementById('rpt-sc-sel');
+  if (!sel) return;
+  const scSet = new Set();
+  withdraws.forEach(w => { if (w.withdrawBy) scSet.add(w.withdrawBy.trim()); });
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">ทั้งหมด</option>';
+  [...scSet].sort().forEach(sc => {
+    const o = document.createElement('option');
+    o.value = sc; o.textContent = sc;
+    sel.appendChild(o);
+  });
+  sel.value = cur;
+}
 
 // ══════════════════════════════
 //  RENDER
@@ -973,15 +1058,29 @@ const STATUS_CLASS = {
 };
 
 function render() {
-  const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
-  // รวมทุกสถานะ เรียงตาม active ก่อน inactive
+  const search  = document.getElementById('searchInput')?.value.toLowerCase() || '';
+  const scFilter = document.getElementById('fb-sc')?.value || '';
   const ALL_STATUS_ORDER = ['Stock','Admin','SC','Customer','Repair','Lose'];
 
-  // filter
+  // filter — ค้นหาทะเบียน + ชื่อลูกค้า + SC
   let filtered = plates.filter(p => {
     if (filters.company !== 'ALL' && p.company !== filters.company) return false;
     if (filters.status !== 'ALL' && p.status !== filters.status) return false;
-    if (search && !p.plateNo.toLowerCase().includes(search) && !p.plateCode.toLowerCase().includes(search)) return false;
+
+    // SC filter
+    if (scFilter) {
+      const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo);
+      if (!lwd || lwd.withdrawBy?.trim() !== scFilter) return false;
+    }
+
+    // search: ทะเบียน หรือ ชื่อลูกค้า
+    if (search) {
+      const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo);
+      const custName = (lwd?.customerName || '').toLowerCase();
+      const matchPlate = p.plateNo.toLowerCase().includes(search) || p.plateCode.toLowerCase().includes(search);
+      const matchCust  = custName.includes(search);
+      if (!matchPlate && !matchCust) return false;
+    }
     return true;
   });
 
@@ -1424,6 +1523,17 @@ document.getElementById('modalOverlay').addEventListener('click', function(e) {
 
 // Login on Enter
 document.getElementById('pwInput').focus();
+
+// ══════════════════════════════
+//  PWA — Service Worker
+// ══════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.warn('SW failed:', err));
+  });
+}
 </script>
 </body>
 </html>

@@ -319,7 +319,25 @@ input[type=file]{display:none;}
   .bnav-btn{padding:.875rem 0;font-size:11px;}
   #app{padding-bottom:0;padding-left:68px;}
 }
-/* REPORT PAGE */
+/* COMPANY SUMMARY CARDS IN DASHBOARD */
+.co-summary-block{background:#fff;border-radius:14px;padding:.75rem;margin-bottom:.75rem;box-shadow:var(--shadow);}
+.co-summary-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;flex-wrap:wrap;gap:.4rem;}
+.co-summary-name{font-size:14px;font-weight:700;color:#1a2d45;line-height:1.3;}
+.co-summary-short{font-size:18px;font-weight:800;color:#1a2d45;margin-right:.25rem;}
+.btn-co-print{background:#c0392b;color:#fff;border:none;padding:5px 12px;border-radius:8px;font-size:13px;font-family:inherit;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;}
+.co-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;}
+.co-card{border-radius:8px;padding:.4rem .5rem;display:flex;align-items:center;gap:.35rem;}
+.co-card-icon{font-size:16px;flex-shrink:0;}
+.co-card-body{flex:1;min-width:0;}
+.co-card-label{font-size:10px;font-weight:700;line-height:1.2;}
+.co-card-sub{font-size:9px;opacity:.75;line-height:1.1;}
+.co-card-val{font-size:20px;font-weight:800;line-height:1;flex-shrink:0;min-width:24px;text-align:right;}
+.co-c-stock{background:linear-gradient(135deg,#5B2D8E,#8e44ad);color:#fff;}
+.co-c-admin{background:linear-gradient(135deg,#1B6B2F,#27ae60);color:#fff;}
+.co-c-sc{background:linear-gradient(135deg,#e07820,#f39c12);color:#fff;}
+.co-c-customer{background:linear-gradient(135deg,#ad1457,#e91e8c);color:#fff;}
+.co-c-repair{background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;}
+.co-c-lose{background:linear-gradient(135deg,#455a64,#78909c);color:#fff;}
 #reportPage{display:none;}
 #reportPage.active{display:block;}
 .rpt-date-input{width:100%;height:36px;border:1.5px solid var(--gray-200);border-radius:8px;padding:0 8px;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:14px;outline:none;box-sizing:border-box;}
@@ -375,7 +393,7 @@ input[type=file]{display:none;}
     </div>
     <div class="topbar-right">
       <div class="sync-badge"><span class="dot" id="syncDot"></span><span id="syncTxt">กำลังโหลด...</span></div>
-      <button class="btn btn-s" style="height:36px;width:36px;font-size:18px;padding:0;border-radius:50%;" onclick="loadData()" title="รีโหลด">↻</button>
+      <button class="btn btn-s" style="height:36px;width:36px;font-size:18px;padding:0;border-radius:50%;" onclick="loadData()" title="รีโหลดข้อมูล">🔄</button>
     </div>
   </div>
 
@@ -390,6 +408,9 @@ input[type=file]{display:none;}
     <button class="bnav-btn" id="bnav-report" onclick="setPage('report')">
       <span class="bnav-icon">📊</span>รายงาน
     </button>
+    <a class="bnav-btn" href="report-summary.html" target="_blank" style="text-decoration:none;">
+      <span class="bnav-icon">📋</span>สรุป
+    </a>
     <button class="bnav-btn" id="bnav-search" onclick="setPage('search')">
       <span class="bnav-icon">🔍</span>ค้นหา
     </button>
@@ -400,23 +421,21 @@ input[type=file]{display:none;}
 
     <!-- Stat Cards -->
     <div class="dash-section">
-      <div class="dash-title">ภาพรวมป้ายแดง</div>
+      <div class="dash-title">ภาพรวมป้ายแดง (รวมทุกบริษัท)</div>
       <div class="stat-cards" id="dashStatCards"></div>
     </div>
 
-    <!-- Overdue -->
-    <div class="dash-section" id="dashOverdueSection">
-      <div class="dash-title" style="color:var(--red);">⚠️ เกินกำหนด</div>
-      <div class="overdue-list" id="dashOverdueList"></div>
+    <!-- Company Summary Cards -->
+    <div class="dash-section" style="padding-bottom:.25rem;">
+      <div class="dash-title">📊 สรุปแยกตามบริษัท</div>
+      <div id="dashCompanySummary"></div>
     </div>
 
     <!-- Recent -->
-    <div class="dash-section">
+    <div class="dash-section" style="padding-bottom:1rem;">
       <div class="dash-title">🕐 เพิ่งเบิกออกไป</div>
       <div class="recent-list" id="dashRecentList"></div>
     </div>
-
-    <!-- Shortcuts -->
   </div>
 
   <!-- ════ PLATES PAGE ════ -->
@@ -463,6 +482,7 @@ input[type=file]{display:none;}
         <div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">สถานะป้าย</div>
           <select id="rpt-status-sel" onchange="onRptStatusChange()" class="rpt-date-input" style="height:36px;">
+            <option value="ALL">ทั้งหมด</option>
             <option value="Stock">📦 Stock</option>
             <option value="Admin">🔑 Admin</option>
             <option value="SC">📋 SC</option>
@@ -564,11 +584,11 @@ const STATUS_GROUPS = {
 // ══════════════════════════════
 //  PAGE NAVIGATION
 // ══════════════════════════════
-let reportTab = 'SC';
+let reportTab = 'ALL';
 let reportOverdueOnly = false;
 
 function onRptStatusChange() {
-  reportTab = document.getElementById('rpt-status-sel')?.value || 'SC';
+  reportTab = document.getElementById('rpt-status-sel')?.value || 'ALL';
   // reset overdue เมื่อเปลี่ยน tab
   reportOverdueOnly = false;
   updateOverdueBtn();
@@ -616,20 +636,33 @@ function renderReport() {
   const wdFrom  = document.getElementById('rpt-wd-from')?.value;
   const wdTo    = document.getElementById('rpt-wd-to')?.value;
   const today   = new Date(); today.setHours(0,0,0,0);
-  const isCust  = (reportTab === 'Customer');
+  const isCust  = (reportTab === 'Customer' || reportTab === 'ALL');
   const scFilter = document.getElementById('rpt-sc-sel')?.value || '';
 
-  let rows = withdraws.filter(w => {
-    const plate = plates.find(p => p.plateNo === w.plateNo);
-    if (!plate || plate.status !== reportTab) return false;
-    if (!w.dateWithdraw) return false;
+  // กรองจาก plates ก่อน แล้ว join กับ withdraw ล่าสุด
+  const filteredPlates = plates.filter(p => {
+    if (reportTab !== 'ALL' && p.status !== reportTab) return false;
+    return true;
+  });
+
+  let rows = filteredPlates.map(p => {
+    const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo);
+    return { plate: p, w: lwd || {} };
+  }).filter(({ plate, w }) => {
+    // กรอง SC
     if (scFilter && w.withdrawBy?.trim() !== scFilter) return false;
 
-    const wd = parseDateStr(w.dateWithdraw);
-    if (wdFrom && wd < new Date(wdFrom)) return false;
-    if (wdTo   && wd > new Date(wdTo + 'T23:59:59')) return false;
+    // กรองวันที่เบิก (ถ้ากำหนด — ป้ายที่ไม่มีวันเบิกจะไม่แสดงเมื่อกำหนด filter)
+    if (wdFrom || wdTo) {
+      if (!w.dateWithdraw) return false;
+      const wd = parseDateStr(w.dateWithdraw);
+      if (wdFrom && wd < new Date(wdFrom)) return false;
+      if (wdTo   && wd > new Date(wdTo + 'T23:59:59')) return false;
+    }
 
-    if (reportOverdueOnly && isCust) {
+    // กรองเฉพาะเกินกำหนด
+    if (reportOverdueOnly) {
+      if (plate.status !== 'Customer') return false;
       if (!w.dueDate) return false;
       const due = parseDateStr(w.dueDate);
       if (!due || due >= today) return false;
@@ -637,37 +670,44 @@ function renderReport() {
     return true;
   });
 
-  // เรียงลำดับตาม receiveDate จากเก่าสุด → ใหม่สุด
+  // เรียงลำดับตาม receiveDate → dateWithdraw → plateCode
   rows.sort((a, b) => {
-    const da = parseDateStr(a.receiveDate) || parseDateStr(a.dateWithdraw);
-    const db = parseDateStr(b.receiveDate) || parseDateStr(b.dateWithdraw);
-    return (da?.getTime() || 0) - (db?.getTime() || 0);
+    const da = parseDateStr(a.w.receiveDate) || parseDateStr(a.w.dateWithdraw);
+    const db = parseDateStr(b.w.receiveDate) || parseDateStr(b.w.dateWithdraw);
+    if (da && db) return da.getTime() - db.getTime();
+    if (da) return -1;
+    if (db) return 1;
+    return (a.plate.plateCode||'').localeCompare(b.plate.plateCode||'', 'th');
   });
 
   document.getElementById('rpt-count').textContent = rows.length + ' รายการ';
   document.getElementById('rpt-empty').style.display = rows.length ? 'none' : '';
 
+  const isAll   = (reportTab === 'ALL');
+
   // thead
   const thead = document.getElementById('rpt-thead');
   thead.innerHTML = `<tr>
     <th style="width:30px">#</th>
+    ${isAll ? '<th>สถานะ</th>' : ''}
     <th>ทะเบียน</th>
     <th>บริษัท</th>
     <th>วันที่เบิก</th>
     <th>SC / ผู้เบิก</th>
-    ${isCust ? '<th>ลูกค้า</th><th>วันรับรถ/ปล่อยรถ</th><th>วันครบกำหนดคืน</th><th>สถานะ</th>' : ''}
+    ${isCust ? '<th>ลูกค้า</th><th>วันรับรถ/ปล่อยรถ</th><th>วันครบกำหนดคืน</th><th>สถานะการคืน</th>' : ''}
     <th>หมายเหตุ</th>
   </tr>`;
 
   // tbody — ทุก td white-space:nowrap ให้อยู่บรรทัดเดียว
   const tdStyle = 'white-space:nowrap;';
   const tbody = document.getElementById('rpt-tbody');
-  tbody.innerHTML = rows.map((w, i) => {
-    const plate = plates.find(p => p.plateNo === w.plateNo);
-    const plateCode = plate?.plateCode || w.plateNo;
-    const co = plate?.company || '-';
+  tbody.innerHTML = rows.map(({ plate, w }, i) => {
+    const plateCode  = plate.plateCode || plate.plateNo;
+    const co         = plate.company || '-';
+    const plateStatus = plate.status || '-';
+    const isRowCust  = plate.status === 'Customer';
     let dueBadge = '';
-    if (isCust && w.dueDate) {
+    if (isRowCust && w.dueDate) {
       const due = parseDateStr(w.dueDate);
       const diff = due ? Math.floor((today - due) / 86400000) : 0;
       dueBadge = diff > 0
@@ -676,11 +716,12 @@ function renderReport() {
     }
     return `<tr>
       <td style="${tdStyle}color:var(--muted);font-size:12px;">${i+1}</td>
-      <td style="${tdStyle}font-weight:700;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:18px;color:var(--${reportTab.toLowerCase()});">${plateCode}</td>
+      ${isAll ? `<td style="${tdStyle}"><span class="plate-status ${STATUS_CLASS[plateStatus]||'s-none'}" style="font-size:12px;padding:2px 8px;">${plateStatus}</span></td>` : ''}
+      <td style="${tdStyle}font-weight:700;font-family:'Angsana New','Cordia New','TH SarabunPSK',sans-serif;font-size:18px;color:var(--${plateStatus.toLowerCase()||'muted'});">${plateCode}</td>
       <td style="${tdStyle}">${co}</td>
       <td style="${tdStyle}">${fmtDateShort(w.dateWithdraw)}</td>
       <td style="${tdStyle}">${w.withdrawBy||'-'}</td>
-      ${isCust ? `<td style="${tdStyle}">${w.customerName||'-'}</td><td style="${tdStyle}">${fmtDateShort(w.receiveDate)}</td><td style="${tdStyle}">${fmtDateShort(w.dueDate)}</td><td style="${tdStyle}">${dueBadge}</td>` : ''}
+      ${isRowCust ? `<td style="${tdStyle}">${w.customerName||'-'}</td><td style="${tdStyle}">${fmtDateShort(w.receiveDate)}</td><td style="${tdStyle}">${fmtDateShort(w.dueDate)}</td><td style="${tdStyle}">${dueBadge}</td>` : (isCust && !isAll ? `<td style="${tdStyle}">${w.customerName||'-'}</td><td style="${tdStyle}">${fmtDateShort(w.receiveDate)}</td><td style="${tdStyle}">${fmtDateShort(w.dueDate)}</td><td style="${tdStyle}">${dueBadge}</td>` : '')}
       <td style="${tdStyle}color:var(--muted);font-size:13px;">${w.remark||''}</td>
     </tr>`;
   }).join('');
@@ -691,7 +732,7 @@ function renderReport() {
 
 function updatePrintHeader(wdFrom, wdTo) {
   const scFilter = document.getElementById('rpt-sc-sel')?.value || '';
-  let subtitle = `สถานะ ${reportTab}`;
+  let subtitle = reportTab === 'ALL' ? 'ทุกสถานะ' : `สถานะ ${reportTab}`;
   if (reportOverdueOnly) subtitle += ' (เกินกำหนดคืน)';
   if (scFilter) subtitle += ` · SC: ${scFilter}`;
   document.getElementById('rpt-print-subtitle').textContent = subtitle;
@@ -729,17 +770,23 @@ function setPage(page) {
 // ══════════════════════════════
 //  DASHBOARD RENDER
 // ══════════════════════════════
+function coSummaryCard(cls, icon, label, sub, val) {
+  return `<div class="co-card ${cls}">
+    <div class="co-card-icon">${icon}</div>
+    <div class="co-card-body">
+      <div class="co-card-label">${label}</div>
+      ${sub?`<div class="co-card-sub">${sub}</div>`:''}
+    </div>
+    <div class="co-card-val">${val}</div>
+  </div>`;
+}
+
 function renderDashboard() {
   if (!plates.length) return;
 
-  const today = new Date(); today.setHours(0,0,0,0);
-
-  // count per status
+  // ── stat cards (รวมทุกบริษัท กดกรองได้) ──
   const counts = {};
   plates.forEach(p => { counts[p.status] = (counts[p.status]||0) + 1; });
-  const total = plates.length;
-
-  // stat cards
   const cardDefs = [
     {key:'Stock',   label:'Stock',    bg:'var(--stock-bg)',    color:'var(--stock)'},
     {key:'Admin',   label:'Admin',    bg:'var(--admin-bg)',    color:'var(--admin)'},
@@ -755,65 +802,45 @@ function renderDashboard() {
       <div class="sc-label" style="color:${c.color}">${c.label}</div>
     </div>`).join('');
 
-  // overdue
-  const scOverdue = [], custOverdue = [];
-  plates.forEach(p => {
-    const lwd = [...withdraws].reverse().find(w => w.plateNo === p.plateNo && !w.refundDate);
-    if (!lwd) return;
-    if (p.status === 'SC' && lwd.dateWithdraw) {
-      const d = parseDateStr(lwd.dateWithdraw); if (!d) return;
-      const days = Math.floor((today - d) / 86400000);
-      if (days >= 3) scOverdue.push({...p, days, sc: lwd.withdrawBy, dateWithdraw: lwd.dateWithdraw});
-    }
-    if (p.status === 'Customer' && lwd.dueDate) {
-      const d = parseDateStr(lwd.dueDate); if (!d) return;
-      const days = Math.floor((today - d) / 86400000);
-      if (days > 0) custOverdue.push({...p, days, customerName: lwd.customerName, sc: lwd.withdrawBy, dueDate: lwd.dueDate});
-    }
-  });
-  scOverdue.sort((a,b)=>b.days-a.days);
-  custOverdue.sort((a,b)=>b.days-a.days);
+  // ── company summary cards ──
+  const COMPANIES = {
+    KK: {short:'KK', name:'บริษัท อีซูซุคิงส์ยนต์กรุงเทพ จำกัด'},
+    KY: {short:'KY', name:'บริษัท อีซูซุคิงส์ยนต์ จำกัด'}
+  };
 
-  const sec = document.getElementById('dashOverdueSection');
-  const list = document.getElementById('dashOverdueList');
-  const all = [...scOverdue, ...custOverdue];
-  if (all.length === 0) {
-    sec.style.display = 'none';
-  } else {
-    sec.style.display = '';
-    list.innerHTML = [
-      ...scOverdue.map(p => `
-        <div class="overdue-item sc-item" onclick="openPlate('${p.plateNo}')">
-          <div class="overdue-info">
-            <div class="overdue-plate" style="color:var(--sc)">${p.plateCode}</div>
-            <div class="overdue-detail">SC: ${p.sc||'-'} · เบิก ${fmtDateShort(p.dateWithdraw)}</div>
-          </div>
-          <div class="overdue-days">
-            <div class="days-num" style="color:var(--sc)">${p.days}</div>
-            <div class="days-label">วัน</div>
-          </div>
-        </div>`),
-      ...custOverdue.map(p => `
-        <div class="overdue-item cust-item" onclick="openPlate('${p.plateNo}')">
-          <div class="overdue-info">
-            <div class="overdue-plate" style="color:var(--customer)">${p.plateCode}</div>
-            <div class="overdue-detail">SC: ${p.sc||'-'} · ครบ ${fmtDateShort(p.dueDate)}</div>
-          </div>
-          <div class="overdue-days">
-            <div class="days-num" style="color:var(--customer)">${p.days}</div>
-            <div class="days-label">วัน</div>
-          </div>
-        </div>`)
-    ].join('');
-  }
+  const coHtml = ['KK','KY'].map(co => {
+    const coPlates = plates.filter(p => p.company === co);
+    const cnt = s => coPlates.filter(p => p.status === s).length;
+    const stock=cnt('Stock'), admin=cnt('Admin'), sc=cnt('SC');
+    const customer=cnt('Customer'), repair=cnt('Repair'), lose=cnt('Lose');
+    const info = COMPANIES[co];
+    return `<div class="co-summary-block">
+      <div class="co-summary-header">
+        <div>
+          <span class="co-summary-short">${info.short}</span>
+          <span class="co-summary-name">${info.name}</span>
+        </div>
+        <a href="report-summary.html" target="_blank" class="btn-co-print">🖨️ พิมพ์ / PDF</a>
+      </div>
+      <div class="co-cards">
+        ${coSummaryCard('co-c-stock',   '📦','Stock',   'ยังไม่เปิดให้ใช้',       stock)}
+        ${coSummaryCard('co-c-admin',   '🔑','Admin',   'เปิดให้ใช้ได้',          admin)}
+        ${coSummaryCard('co-c-sc',      '📋','SC',      'ยังไม่ส่งมอบรถ',         sc)}
+        ${coSummaryCard('co-c-customer','👤','Customer','ส่งมอบรถแล้ว',           customer)}
+        ${coSummaryCard('co-c-repair',  '🔧','Repair',  'ชำรุดเสียหาย',           repair)}
+        ${coSummaryCard('co-c-lose',    '❌','Lose',    'สูญหาย',                 lose)}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('dashCompanySummary').innerHTML = coHtml;
 
-  // recent (last 5 withdraws)
+  // ── recent ──
   const recent = [...withdraws]
     .filter(w => w.dateWithdraw && !w.refundDate)
     .sort((a, b) => {
       const da = parseDateStr(a.dateWithdraw);
       const db = parseDateStr(b.dateWithdraw);
-      return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+      return (db?db.getTime():0) - (da?da.getTime():0);
     })
     .slice(0, 5);
   document.getElementById('dashRecentList').innerHTML = recent.length ? recent.map(w => {

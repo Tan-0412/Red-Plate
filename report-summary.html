@@ -15,7 +15,10 @@ body{font-family:'Sarabun','Angsana New','TH SarabunPSK',sans-serif;background:#
 .bar-right{display:flex;gap:.5rem;align-items:center;}
 .btn-print{background:#c0392b;color:#fff;border:none;padding:7px 18px;border-radius:7px;font-size:14px;font-family:inherit;font-weight:700;cursor:pointer;}
 .btn-print:hover{background:#a93226;}
-.btn-back{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);padding:7px 14px;border-radius:7px;font-size:13px;font-family:inherit;cursor:pointer;text-decoration:none;display:inline-block;}
+.btn-back{background:#fff;color:#1a2d45;border:none;padding:7px 14px;border-radius:7px;font-size:14px;font-family:inherit;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;}
+.btn-back:hover{background:#eef3ff;}
+.btn-preview{background:#f39c12;color:#fff;border:none;padding:7px 14px;border-radius:7px;font-size:14px;font-family:inherit;font-weight:700;cursor:pointer;}
+.btn-preview:hover{background:#d68910;}
 
 .loading-wrap{text-align:center;padding:3rem;color:#666;}
 .spinner{width:36px;height:36px;border:3px solid #ddd;border-top-color:#c0392b;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem;}
@@ -69,7 +72,7 @@ tbody tr:hover td{background:#eef3ff;}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   @page{size:A4 portrait;margin:10mm 8mm;}
   html,body{width:210mm;background:#fff;font-size:9px;}
-  .screen-bar{display:none!important;}
+  .screen-bar,#screenBar,#previewModal,.btn-back,.btn-preview,.btn-print,.bar-right,.loading-wrap{display:none!important;}
   #reportWrap{max-width:100%;width:100%;margin:0;padding:0;}
 
   /* แต่ละบริษัทเป็น block ต่อเนื่อง ไม่ force page break */
@@ -118,21 +121,18 @@ tbody tr:hover td{background:#eef3ff;}
     <!-- iframe จะถูก inject ที่นี่ -->
   </div>
 </div>
+
+<div class="screen-bar" id="screenBar">
   <div>
     <div class="screen-bar-title">รายงานสรุปการใช้ป้ายแดง</div>
     <div class="screen-bar-sub">สาขา สุวินทวงศ์</div>
   </div>
   <div class="bar-right">
-    <a href="index.html" class="btn-back">← กลับ</a>
-    <button class="btn-preview" onclick="openPreview()" id="btnPreview">📄 พรีวิว A4</button>
-    <button class="btn-print" onclick="window.print()">🖨️ พิมพ์ / PDF</button>
+    <button class="btn-back" onclick="history.back()">← กลับ</button>
+    <button class="btn-preview" onclick="openPreview()" id="btnPreview">📋 รายงาน</button>
+    <button class="btn-print" onclick="openPreview()">🖨️ พิมพ์ / PDF</button>
   </div>
 </div>
-
-<style>
-.btn-preview{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.35);padding:7px 14px;border-radius:7px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:600;}
-.btn-preview:hover{background:rgba(255,255,255,.25);}
-</style>
 
 <div id="reportWrap">
   <div class="loading-wrap">
